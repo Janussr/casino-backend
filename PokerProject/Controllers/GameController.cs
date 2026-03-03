@@ -256,5 +256,12 @@ namespace PokerProject.Controllers
 
             return Ok();
         }
+
+        [HttpGet("bounty-leaderboard")]
+        public async Task<IActionResult> GetBountyLeaderboard()
+        {
+            var leaderboard = await _gameService.GetBountyLeaderboardAsync();
+            return Ok(leaderboard);
+        }
     }
 }

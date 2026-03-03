@@ -23,13 +23,10 @@ namespace PokerProject.Services
         Task<bool> IsUserParticipantAsync(int gameId, int userId);
         Task<List<ParticipantDto>> RemoveParticipantAsync(int gameId, int userId);
         Task<PlayerScoreDetailsDto> GetPlayerScoreEntries(int gameId, int userId);
-        //Task RegisterKnockoutAsync(int gameId, int victimUserId, int killerUserId);
-
-        //Task AdminRegisterKnockoutAsync(int gameId, int killerUserId, int victimUserId);
         Task RegisterKnockoutAsync(int gameId, int killerUserId, int victimUserId);
-        //Task HandleKnockoutAsync(int gameId, int killerUserId, int victimUserId);
         Task<ScoreDto> RegisterRebuyAsync(int gameId, int userId);
         Task UpdateRulesAsync(int gameId, UpdateRulesDto dto);
+        Task<List<BountyLeaderboardDto>> GetBountyLeaderboardAsync();
     }
 
 
@@ -635,6 +632,57 @@ namespace PokerProject.Services
             game.BountyValue = dto.BountyValue;
 
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<List<BountyLeaderboardDto>> GetBountyLeaderboardAsync()
+        {
+            // Knockouts lavet pr. spiller
+            var knockoutsQuery = _context.Scores
+                .Where(s => s.Type == Score.ScoreType.Bounty)
+                .GroupBy(s => s.UserId)
+                .Select(g => new
+                {
+                    UserId = g.Key,
+                    Knockouts = g.Count(),
+                    TotalBountyPoints = g.Sum(s => s.Points)
+                });
+
+            // Gange slået ud pr. spiller
+            var timesKnockedOutQuery = _context.Scores
+                .Where(s => s.Type == Score.ScoreType.Bounty && s.VictimUserId.HasValue)
+                .GroupBy(s => s.VictimUserId.Value)
+                .Select(g => new
+                {
+                    VictimUserId = g.Key,
+                    TimesKnockedOut = g.Count()
+                });
+
+            // Hent begge aggregater som lists
+            var knockouts = await knockoutsQuery.ToListAsync();
+            var timesKnockedOut = await timesKnockedOutQuery.ToListAsync();
+
+            // Hent alle brugere der har scores
+            var userIds = knockouts.Select(k => k.UserId)
+                .Union(timesKnockedOut.Select(t => t.VictimUserId))
+                .ToList();
+
+            var users = await _context.Users
+                .Where(u => userIds.Contains(u.Id))
+                .ToListAsync();
+
+            // Merge data til leaderboard
+            var leaderboard = users.Select(u => new BountyLeaderboardDto
+            {
+                UserId = u.Id,
+                UserName = u.Username,
+                Knockouts = knockouts.FirstOrDefault(k => k.UserId == u.Id)?.Knockouts ?? 0,
+                TimesKnockedOut = timesKnockedOut.FirstOrDefault(t => t.VictimUserId == u.Id)?.TimesKnockedOut ?? 0,
+                TotalBountyPoints = knockouts.FirstOrDefault(k => k.UserId == u.Id)?.TotalBountyPoints ?? 0
+            })
+            .OrderByDescending(x => x.Knockouts)
+            .ToList();
+
+            return leaderboard;
         }
 
     }
