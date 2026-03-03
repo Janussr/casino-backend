@@ -52,7 +52,7 @@ namespace PokerProject.Controllers
             {
                 return BadRequest(new { message = ex.Message });
             }
-           
+
         }
 
         [Authorize(Roles = "Admin")]
@@ -98,7 +98,7 @@ namespace PokerProject.Controllers
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Forbid(); 
+                return Forbid();
             }
             catch (InvalidOperationException ex)
             {
@@ -209,7 +209,7 @@ namespace PokerProject.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
-      
+
 
         [Authorize(Roles = "Admin")]
         [HttpPatch("{gameId}/rules")]
@@ -233,9 +233,22 @@ namespace PokerProject.Controllers
         [HttpPost("{gameId}/bounty")]
         public async Task<IActionResult> RegisterKnockout(int gameId, [FromBody] KnockoutDto dto)
         {
-            var userId = User.GetUserId(); 
+            var userId = User.GetUserId();
 
-            await _gameService.RegisterKnockoutAsync(gameId, dto.KnockedOutUserId, userId);
+            await _gameService.RegisterKnockoutAsync(gameId, dto.VictimUserId, userId);
+
+            return Ok();
+        }
+
+
+        [HttpPost("{gameId}/admin/bounty")]
+        public async Task<IActionResult> RegisterAdminKnockout(int gameId,[FromBody] KnockoutDto dto)
+        {
+            await _gameService.AdminRegisterKnockoutAsync(
+                gameId,
+                dto.KillerUserId,
+                dto.VictimUserId
+            );
 
             return Ok();
         }

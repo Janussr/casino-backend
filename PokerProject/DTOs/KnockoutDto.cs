@@ -2,6 +2,7 @@
 {
     public class KnockoutDto
     {
-        public int KnockedOutUserId { get; set; }
+        public int KillerUserId { get; set; }
+        public int VictimUserId { get; set; }
     }
 }
