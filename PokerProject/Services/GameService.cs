@@ -15,6 +15,7 @@ namespace PokerProject.Services
         Task<GameDto> EndGameAsync(int gameId);
         Task<GameDto> CancelGameAsync(int gameId);
         Task RemoveGameAsync(int gameId);
+        Task<GameDto?> GetActiveGameAsync();
         Task<List<GameDto>> GetAllGamesAsync();
         Task<GameDto?> GetGameByIdAsync(int gameId);
         Task<GameDetailsDto?> GetGameDetailsAsync(int gameId, string? role);
@@ -77,7 +78,7 @@ namespace PokerProject.Services
                 throw new Exception("Game not found");
 
             if (game.IsFinished)
-                throw new InvalidOperationException("Spillet er slut – kan ikke tilføje points.");
+                throw new InvalidOperationException("Game has ended – Cant add points.");
 
             var score = new Score
             {
@@ -256,6 +257,48 @@ namespace PokerProject.Services
                 EndedAt = DateTime.UtcNow,
                 IsFinished = true
             };
+        }
+        public async Task<GameDto?> GetActiveGameAsync()
+        {
+            var game = await _context.Games
+                .Where(g => !g.IsFinished)
+                .Select(g => new GameDto
+                {
+                    Id = g.Id,
+                    GameNumber = g.GameNumber,
+                    StartedAt = g.StartedAt,
+                    EndedAt = g.EndedAt,
+                    IsFinished = g.IsFinished,
+                    RebuyValue = g.RebuyValue,
+                    BountyValue = g.BountyValue,
+
+                    Participants = g.Participants.Select(p => new ParticipantDto
+                    {
+                        UserId = p.UserId,
+                        UserName = p.User.Name,
+                        RebuyCount = p.RebuyCount,
+                        ActiveBounties = p.ActiveBounties,
+                    }).ToList(),
+
+                    Scores = g.Scores.Select(s => new ScoreDto
+                    {
+                        Id = s.Id,
+                        UserId = s.UserId,
+                        UserName = s.User.Username,
+                        Points = s.Points
+                    }).ToList(),
+
+                    Winner = g.Winner == null ? null : new WinnerDto
+                    {
+                        UserId = g.Winner.UserId,
+                        UserName = g.Winner.User.Name,
+                        WinningScore = g.Winner.WinningScore,
+                        WinDate = g.Winner.WinDate
+                    }
+                })
+                .FirstOrDefaultAsync(); 
+
+            return game;
         }
 
         public async Task<List<GameDto>> GetAllGamesAsync()
@@ -522,7 +565,7 @@ namespace PokerProject.Services
                 ?? throw new Exception("Game not found");
 
             if (!game.BountyValue.HasValue)
-                throw new Exception("Bounty value not set for this game");
+                throw new InvalidOperationException("Bounty value not set for this game");
 
             var killer = game.Participants
                 .FirstOrDefault(p => p.UserId == killerUserId)

@@ -81,6 +81,13 @@ namespace PokerProject.Controllers
             return Ok(games);
         }
 
+        [HttpGet("active/game")]
+        public async Task<ActionResult<List<GameDto>>> GetActiveGame()
+        {
+            var games = await _gameService.GetActiveGameAsync();
+            return Ok(games);
+        }
+
         [HttpGet("{id}")]
         public async Task<ActionResult<GameDetailsDto>> GetGameDetails(int id)
         {
@@ -246,13 +253,21 @@ namespace PokerProject.Controllers
         [HttpPost("{gameId}/admin/bounty")]
         public async Task<IActionResult> AdminRegisterKnockout(int gameId, [FromBody] KnockoutDto dto)
         {
-            await _gameService.RegisterKnockoutAsync(
-                gameId,
-                dto.KillerUserId,
-                dto.VictimUserId
-            );
+            try
+            {
+                await _gameService.RegisterKnockoutAsync(
+               gameId,
+               dto.KillerUserId,
+               dto.VictimUserId
+           );
 
-            return Ok();
+                return Ok();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
         }
 
         [HttpGet("bounty-leaderboard")]
