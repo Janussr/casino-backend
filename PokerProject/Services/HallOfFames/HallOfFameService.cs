@@ -2,14 +2,8 @@
 using PokerProject.Data;
 using PokerProject.DTOs;
 
-namespace PokerProject.Services
+namespace PokerProject.Services.HallOfFames
 {
-
-    public interface IHallOfFameService
-    {
-        Task<List<HallOfFameDto>> GetEntireHallOfFameAsync();
-    }
-
     public class HallOfFameService : IHallOfFameService
     {
         private readonly PokerDbContext _context;

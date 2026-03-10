@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PokerProject.DTOs;
-using PokerProject.Services;
 using PokerProject.Models;
+using PokerProject.Services.HallOfFames;
 
 namespace PokerProject.Controllers
 {

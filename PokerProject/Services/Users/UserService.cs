@@ -7,16 +7,8 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace PokerProject.Services
+namespace PokerProject.Services.Users
 {
-    public interface IUserService
-    {
-        Task<IEnumerable<UserDto>> GetAllUsersAsync();
-        Task<UserDto?> GetUserByIdAsync(int id);
-        Task<UserDto> RegisterAsync(RegisterUserDto dto);
-        Task<string?> LoginAndGenerateTokenAsync(string username, string password);
-    }
-
     public class UserService : IUserService
     {
         private readonly PokerDbContext _context;

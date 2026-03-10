@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PokerProject.DTOs;
 using PokerProject.Models;
-using PokerProject.Services;
+using PokerProject.Services.Users;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -22,38 +22,59 @@ public class UsersController : ControllerBase
             var user = await _userService.RegisterAsync(dto);
             return CreatedAtAction(nameof(GetUserById), new { id = user.Id }, user);
         }
+        catch (ArgumentException ex) // fx username already exists
+        {
+            return BadRequest(new { message = ex.Message });
+        }
         catch (Exception ex)
         {
-            return BadRequest(ex.Message);
+            return StatusCode(500, new { message = "Unexpected server error" });
         }
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<UserDto>> GetUserById(int id)
     {
-        var user = await _userService.GetUserByIdAsync(id);
-        if (user == null) return NotFound();
-        return Ok(user);
+        try
+        {
+            var user = await _userService.GetUserByIdAsync(id);
+            if (user == null) return NotFound(new { message = "User not found" });
+            return Ok(user);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Unexpected server error" });
+        }
     }
 
-
     [HttpGet]
-    public async Task<ActionResult<UserDto>> GetAllUsers()
+    public async Task<ActionResult<IEnumerable<UserDto>>> GetAllUsers()
     {
-        var users = await _userService.GetAllUsersAsync();
-        return Ok(users);
+        try
+        {
+            var users = await _userService.GetAllUsersAsync();
+            return Ok(users);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Unexpected server error" });
+        }
     }
 
     [HttpPost("login")]
     public async Task<ActionResult<object>> Login(LoginUserDto dto)
     {
-        var token = await _userService.LoginAndGenerateTokenAsync(dto.Username, dto.Password);
+        try
+        {
+            var token = await _userService.LoginAndGenerateTokenAsync(dto.Username, dto.Password);
+            if (token == null)
+                return Unauthorized(new { message = "Invalid username or password" });
 
-        if (token == null)
-            return Unauthorized("Invalid username or password");
-
-        return Ok(new { Token = token });
+            return Ok(new { token });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Unexpected server error" });
+        }
     }
-
-
 }

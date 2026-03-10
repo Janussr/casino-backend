@@ -2,7 +2,12 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using PokerProject.Data;
-using PokerProject.Services;
+using PokerProject.Services.Bounties;
+using PokerProject.Services.Games;
+using PokerProject.Services.HallOfFames;
+using PokerProject.Services.Participants;
+using PokerProject.Services.Scores;
+using PokerProject.Services.Users;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -43,7 +48,10 @@ builder.Services.AddDbContext<PokerDbContext>(options =>
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IGameService, GameService>();
 builder.Services.AddScoped<IHallOfFameService, HallOfFameService>();
-
+builder.Services.AddScoped<IGameService, GameService>();
+builder.Services.AddScoped<IScoreService, ScoreService>();
+builder.Services.AddScoped<IParticipantService, ParticipantService>();
+builder.Services.AddScoped<IBountyService, BountyService>();
 
 //CORS
 builder.Services.AddCors(options =>
