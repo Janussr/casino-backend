@@ -343,7 +343,7 @@ namespace PokerProject.Controllers
             }
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")] 
         [HttpPost("{gameId}/admin/rebuy")]
         public async Task<IActionResult> AdminRebuy(int gameId, [FromBody] int targetUserId)
         {
