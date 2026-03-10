@@ -228,25 +228,58 @@ namespace PokerProject.Controllers
         [HttpPost("{gameId}/rebuy")]
         public async Task<IActionResult> Rebuy(int gameId)
         {
-            var userId = int.Parse(User.FindFirst("id")!.Value);
+            try
+            {
+                //var userId = int.Parse(User.FindFirst("id")!.Value);
+                var userId = User.GetUserId();
+                var result = await _gameService.RegisterRebuyAsync(gameId, userId);
+                return Ok(result);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Forbid(ex.Message); 
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message); 
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message); 
+            }
 
-            var result = await _gameService.RegisterRebuyAsync(gameId, userId);
-            return Ok(result);
         }
 
         [Authorize]
         [HttpPost("{gameId}/bounty")]
         public async Task<IActionResult> RegisterKnockout(int gameId, [FromBody] KnockoutDto dto)
         {
-            var userId = User.GetUserId();
+            try
+            {
+                var userId = User.GetUserId();
+                var isAdmin = User.GetUserRole() == "Admin";
 
-            await _gameService.RegisterKnockoutAsync(
-                gameId,
-                userId,              
-                dto.VictimUserId     
-            );
+                await _gameService.RegisterKnockoutAsync(
+                    gameId,
+                    userId,
+                    dto.VictimUserId,
+                    isAdmin
+                );
 
-            return Ok();
+                return Ok();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message); 
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message); 
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Unexpected error"); 
+            }
         }
 
         [Authorize(Roles = "Admin")]
@@ -255,19 +288,29 @@ namespace PokerProject.Controllers
         {
             try
             {
+                 var isAdmin = User.GetUserRole() == "Admin";
+
                 await _gameService.RegisterKnockoutAsync(
-               gameId,
-               dto.KillerUserId,
-               dto.VictimUserId
-           );
+                    gameId,
+                    dto.KillerUserId,
+                    dto.VictimUserId,
+                    isAdmin
+                );
 
                 return Ok();
             }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message); 
+            }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(ex.Message); 
             }
-
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Unexpected error"); 
+            }
         }
 
         [HttpGet("bounty-leaderboard")]
