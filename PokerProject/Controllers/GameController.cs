@@ -347,6 +347,7 @@ namespace PokerProject.Controllers
         [HttpPost("{gameId}/admin/rebuy")]
         public async Task<IActionResult> AdminRebuy(int gameId, [FromBody] int targetUserId)
         {
+
             try
             {
                 var adminId = User.GetUserId();
