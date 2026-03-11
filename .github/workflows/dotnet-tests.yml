@@ -1,0 +1,35 @@
+name: .NET 10 CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. Tjekk koden ud
+    - uses: actions/checkout@v3
+
+    # 2. Installer .NET 10 SDK
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 10.0.x
+
+    # 3. Genskab dependencies
+    - name: Restore dependencies
+      run: dotnet restore
+
+    # 4. Byg projektet
+    - name: Build
+      run: dotnet build --no-restore --configuration Release
+
+    # 5. Kør tests
+    - name: Run tests
+      run: dotnet test --no-build --configuration Release --logger "console;verbosity=detailed"
+
+  
