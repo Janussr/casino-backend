@@ -3,9 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using PokerProject.Data;
 using PokerProject.Models;
 using PokerProject.Services.Participants;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace PokerProject.Tests.Services
 {

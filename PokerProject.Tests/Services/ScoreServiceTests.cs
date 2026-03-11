@@ -1,11 +1,7 @@
 ﻿using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using PokerProject.Data;
-using PokerProject.Models;
 using PokerProject.Services.Scores;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace PokerProject.Tests.Services
 {
@@ -88,6 +84,6 @@ namespace PokerProject.Tests.Services
             await act.Should().ThrowAsync<InvalidOperationException>()
                 .WithMessage("Rebuy value not set by admin");
         }
-
+         
     }
 }
