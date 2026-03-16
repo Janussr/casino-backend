@@ -8,5 +8,6 @@ namespace PokerProject.Services.Users
         Task<UserDto?> GetUserByIdAsync(int id);
         Task<UserDto> RegisterAsync(RegisterUserDto dto);
         Task<string?> LoginAndGenerateTokenAsync(string username, string password);
+        Task<UserDto> AdminResetPasswordAsync(int userId, string newPassword);
     }
 }

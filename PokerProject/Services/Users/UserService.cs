@@ -19,12 +19,12 @@ namespace PokerProject.Services.Users
             _context = context;
 
             // Prøv at hente fra env var
-            _jwtKey = Environment.GetEnvironmentVariable("JWT_SECRET");
+            _jwtKey = Environment.GetEnvironmentVariable("JWT_SECRET")!;
 
             // Hvis den ikke findes, kan du fallback til appsettings (valgfrit)
             if (string.IsNullOrEmpty(_jwtKey))
             {
-                _jwtKey = configuration["JwtSettings:Secret"];
+                _jwtKey = configuration["JwtSettings:Secret"]!;
             }
 
             if (string.IsNullOrEmpty(_jwtKey))
@@ -73,6 +73,23 @@ namespace PokerProject.Services.Users
             };
 
             _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+
+            return new UserDto
+            {
+                Id = user.Id,
+                Username = user.Username,
+                Name = user.Name
+            };
+        }
+
+        public async Task<UserDto?> AdminResetPasswordAsync(int userId, string newPassword)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null) return null;
+
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+
             await _context.SaveChangesAsync();
 
             return new UserDto

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using PokerProject.DTOs;
 using PokerProject.Models;
 using PokerProject.Services.Users;
@@ -71,6 +72,25 @@ public class UsersController : ControllerBase
                 return Unauthorized(new { message = "Invalid username or password" });
 
             return Ok(new { token });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Unexpected server error" });
+        }
+    }
+
+    //[Authorize(Roles = "Admin")]
+    [HttpPost("admin/reset-password")]
+    public async Task<IActionResult> AdminResetPassword(AdminResetPasswordDto dto)
+    {
+        try
+        {
+            var user = await _userService.AdminResetPasswordAsync(dto.UserId, dto.NewPassword);
+
+            if (user == null)
+                return NotFound(new { message = "User not found" });
+
+            return Ok(new { message = "Password reset successfully", user });
         }
         catch (Exception ex)
         {
