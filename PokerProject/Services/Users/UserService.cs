@@ -17,8 +17,20 @@ namespace PokerProject.Services.Users
         public UserService(PokerDbContext context, IConfiguration configuration)
         {
             _context = context;
-            _jwtKey = configuration["JwtSettings:Secret"]
-                ?? throw new Exception("JWT Secret not configured in appsettings.json"); ;
+
+            // Prøv at hente fra env var
+            _jwtKey = Environment.GetEnvironmentVariable("JWT_SECRET");
+
+            // Hvis den ikke findes, kan du fallback til appsettings (valgfrit)
+            if (string.IsNullOrEmpty(_jwtKey))
+            {
+                _jwtKey = configuration["JwtSettings:Secret"];
+            }
+
+            if (string.IsNullOrEmpty(_jwtKey))
+            {
+                throw new Exception("JWT Secret not set! Put it in .env or appsettings.");
+            }
         }
 
         public async Task<IEnumerable<UserDto>> GetAllUsersAsync()

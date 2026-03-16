@@ -13,8 +13,15 @@ using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var jwtKey = builder.Configuration["JwtSettings:Secret"];
-var key = Encoding.ASCII.GetBytes(jwtKey);
+//Using a nugetpackage to load .env file when testing in local
+DotNetEnv.Env.Load();
+
+//Connection string for database, loaded from env variable
+//var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
+
+var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET")
+                ?? throw new InvalidOperationException("JWT_SECRET not set");
+var key = Encoding.ASCII.GetBytes(jwtSecret);
 
 // JWT Authentication
 builder.Services.AddAuthentication(options =>
@@ -39,10 +46,14 @@ builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
-// DbContext
-builder.Services.AddDbContext<PokerDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
-);
+
+// DATABASE 
+
+//incomment for local db
+builder.Services.AddDbContext<PokerDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+//incomment for prod db
+//builder.Services.AddDbContext<PokerDbContext>(options =>options.UseSqlServer(connectionString));
 
 
 builder.Services.AddScoped<IUserService, UserService>();
@@ -54,11 +65,14 @@ builder.Services.AddScoped<IParticipantService, ParticipantService>();
 builder.Services.AddScoped<IBountyService, BountyService>();
 
 //CORS
+var corsOrigins = Environment.GetEnvironmentVariable("CORS_ORIGINS")?
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:3000") // frontend URL
+        policy.WithOrigins(corsOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
@@ -73,12 +87,9 @@ builder.Services
 
 
 var app = builder.Build();
-
-app.UseAuthentication(); 
-app.UseAuthorization();
+app.MapGet("/", () => "Backend kører!");
 
 // Configure the HTTP request pipeline.
-
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -88,6 +99,7 @@ app.UseHttpsRedirection();
 
 app.UseCors("AllowFrontend");
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
