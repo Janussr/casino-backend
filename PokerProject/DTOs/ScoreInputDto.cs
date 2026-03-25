@@ -2,7 +2,7 @@
 {
     public class ScoreInputDto
     {
-        public int UserId { get; set; }
+        public int PlayerId { get; set; }
         public int Points { get; set; }
     }
 }

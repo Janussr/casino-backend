@@ -103,20 +103,20 @@ namespace PokerProject.Services.Scores
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                var userIds = dto.Scores.Select(s => s.UserId).ToList();
+                var playerIds = dto.Scores.Select(s => s.PlayerId).ToList();
                 var players = await _context.Players
-                    .Where(p => p.GameId == game.Id && userIds.Contains(p.UserId))
+                    .Where(p => p.GameId == game.Id && playerIds.Contains(p.Id))
                     .ToListAsync();
 
-                var missingUsers = userIds.Except(players.Select(p => p.UserId)).ToList();
-                if (missingUsers.Any())
-                    throw new InvalidOperationException($"Users {string.Join(", ", missingUsers)} are not players in this game.");
+                var missingPlayers = playerIds.Except(players.Select(p => p.Id)).ToList();
+                if (missingPlayers.Any())
+                    throw new InvalidOperationException($"Players {string.Join(", ", missingPlayers)} are not in this game.");
 
                 var addedScores = new List<Score>();
 
                 foreach (var s in dto.Scores)
                 {
-                    var player = players.First(p => p.UserId == s.UserId);
+                    var player = players.First(p => p.Id == s.PlayerId);
 
                     var score = new Score
                     {
@@ -140,7 +140,7 @@ namespace PokerProject.Services.Scores
                     return new ScoreDto
                     {
                         Id = s.Id,
-                        PlayerId = player.UserId,
+                        PlayerId = player.Id, 
                         Points = s.Value,
                         Type = s.Type,
                         Rounds = new RoundDto

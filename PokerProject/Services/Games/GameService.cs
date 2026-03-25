@@ -650,7 +650,6 @@ namespace PokerProject.Services.Games
 
         public async Task RemoveGameAsync(int gameId)
         {
-            // Hent spillet inkl. Players og Rounds
             var game = await _context.Games
                 .Include(g => g.Players)
                 .Include(g => g.Rounds)
@@ -660,23 +659,19 @@ namespace PokerProject.Services.Games
             if (game == null)
                 throw new KeyNotFoundException("Game not found");
 
-            // 1️⃣ Slet HallOfFame entries for spillere i spillet
             var playerIds = game.Players.Select(p => p.Id).ToList();
-            // 1️⃣ Sæt WinnerPlayerId = null, hvis vinderen er i spillet
             if (game.WinnerPlayerId.HasValue && playerIds.Contains(game.WinnerPlayerId.Value))
             {
                 game.WinnerPlayerId = null;
-                await _context.SaveChangesAsync(); // <--- Gem her før sletning
+                await _context.SaveChangesAsync();
             }
 
-            // 2️⃣ Slet HallOfFame
             var hallOfFameEntries = await _context.HallOfFames
                 .Where(h => playerIds.Contains(h.PlayerId))
                 .ToListAsync();
             _context.HallOfFames.RemoveRange(hallOfFameEntries);
-            await _context.SaveChangesAsync(); // valgfrit, men kan gøres
+            await _context.SaveChangesAsync(); 
 
-            // 3️⃣ Slet Scores
             var scoresToDelete = await _context.Scores
                 .Where(s => playerIds.Contains(s.PlayerId) ||
                             (s.VictimPlayerId.HasValue && playerIds.Contains(s.VictimPlayerId.Value)))
@@ -684,7 +679,6 @@ namespace PokerProject.Services.Games
             _context.Scores.RemoveRange(scoresToDelete);
             await _context.SaveChangesAsync();
 
-            // 4️⃣ Slet selve spillet (Players og Rounds slettes via cascade)
             _context.Games.Remove(game);
             await _context.SaveChangesAsync();
         }
