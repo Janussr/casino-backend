@@ -90,30 +90,37 @@ namespace PokerProject.Services.Bounties
 
         public async Task<List<BountyLeaderboardDto>> GetBountyLeaderboardAsync()
         {
-            var knockoutsQuery = _context.Scores
-                .Where(s => s.Type == Score.ScoreType.Bounty)
-                .GroupBy(s => s.PlayerId)
+            var knockoutsQuery = from s in _context.Scores
+                                 where s.Type == Score.ScoreType.Bounty
+                                 join p in _context.Players on s.PlayerId equals p.Id
+                                 select new { p.UserId, s.Value };
+
+            var knockoutsGrouped = await knockoutsQuery
+                .GroupBy(k => k.UserId)
                 .Select(g => new
                 {
                     UserId = g.Key,
                     Knockouts = g.Count(),
-                    TotalBountyPoints = g.Sum(s => s.Value)
-                });
+                    TotalBountyPoints = g.Sum(x => x.Value)
+                })
+                .ToListAsync();
 
-            var timesKnockedOutQuery = _context.Scores
-                .Where(s => s.Type == Score.ScoreType.Bounty && s.VictimPlayerId.HasValue)
-                .GroupBy(s => s.VictimPlayerId.Value)
+            var timesKnockedOutQuery = from s in _context.Scores
+                                       where s.Type == Score.ScoreType.Bounty && s.VictimPlayerId.HasValue
+                                       join p in _context.Players on s.VictimPlayerId equals p.Id
+                                       select p.UserId;
+
+            var timesKnockedOutGrouped = await timesKnockedOutQuery
+                .GroupBy(uId => uId)
                 .Select(g => new
                 {
                     VictimUserId = g.Key,
                     TimesKnockedOut = g.Count()
-                });
+                })
+                .ToListAsync();
 
-            var knockouts = await knockoutsQuery.ToListAsync();
-            var timesKnockedOut = await timesKnockedOutQuery.ToListAsync();
-
-            var userIds = knockouts.Select(k => k.UserId)
-                .Union(timesKnockedOut.Select(t => t.VictimUserId))
+            var userIds = knockoutsGrouped.Select(k => k.UserId)
+                .Union(timesKnockedOutGrouped.Select(t => t.VictimUserId))
                 .ToList();
 
             var users = await _context.Users
@@ -124,16 +131,15 @@ namespace PokerProject.Services.Bounties
             {
                 UserId = u.Id,
                 UserName = u.Username,
-                Knockouts = knockouts.FirstOrDefault(k => k.UserId == u.Id)?.Knockouts ?? 0,
-                TimesKnockedOut = timesKnockedOut.FirstOrDefault(t => t.VictimUserId == u.Id)?.TimesKnockedOut ?? 0,
-                TotalBountyPoints = knockouts.FirstOrDefault(k => k.UserId == u.Id)?.TotalBountyPoints ?? 0
+                Knockouts = knockoutsGrouped.FirstOrDefault(k => k.UserId == u.Id)?.Knockouts ?? 0,
+                TimesKnockedOut = timesKnockedOutGrouped.FirstOrDefault(t => t.VictimUserId == u.Id)?.TimesKnockedOut ?? 0,
+                TotalBountyPoints = knockoutsGrouped.FirstOrDefault(k => k.UserId == u.Id)?.TotalBountyPoints ?? 0
             })
             .OrderByDescending(x => x.Knockouts)
             .ToList();
 
             return leaderboard;
         }
-
 
 
     }
