@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using PokerProject.DTOs;
 using PokerProject.Models;
 using PokerProject.Services.Users;
@@ -49,6 +50,21 @@ public class UsersController : ControllerBase
         catch (Exception ex)
         {
             return StatusCode(500, new { message = ex });
+        }
+    }
+
+    [Authorize]
+    [HttpGet("active-game/{userId}")]
+    public async Task<ActionResult<ActiveGameDto>> GetActiveGame(int userId)
+    {
+        try
+        {
+            var activeGameId = await _userService.GetActiveGameIdByUserAsync(userId);
+            return Ok(new ActiveGameDto { ActiveGameId = activeGameId });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = ex.Message });
         }
     }
 
@@ -139,6 +155,27 @@ public class UsersController : ControllerBase
         }
     }
 
+    [Authorize]
+    [HttpPost("update-password")]
+    public async Task<IActionResult> PlayerUpdatePassword(UpdatePasswordDto dto)
+    {
+        try
+        {
+            var userId = User.GetUserId();
+
+            var user = await _userService.PlayerUpdatePasswordAsync(userId, dto.CurrentPassword, dto.NewPassword);
+
+            if (user == null)
+                return NotFound(new { message = "User not found or current password incorrect" });
+
+            return Ok(new { message = "Password updated successfully", user });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = ex.Message });
+        }
+    }
+
     [Authorize(Roles = "Admin")]
     [HttpPost("admin/set-role")]
     public async Task<IActionResult> SetRole(SetUserRoleDto dto)
@@ -154,4 +191,29 @@ public class UsersController : ControllerBase
             user
         });
     }
-}
+
+    [HttpPost("update-username")]
+    public async Task<IActionResult> PlayerUpdateUsername([FromBody] UpdateUsernameDto dto)
+    {
+        try
+        {
+            // Hent userId fra JWT eller Claims
+            var userId = User.GetUserId();
+
+            // Opdater username
+            var updatedUser = await _userService.PlayerUpdateUsernameAsync(userId, dto.NewUsername);
+
+            if (updatedUser == null)
+                return NotFound(new { message = "User not found" });
+
+            return Ok(new { message = "Username updated successfully", user = updatedUser });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = ex.Message });
+        }
+    }
+
+
+
+    }

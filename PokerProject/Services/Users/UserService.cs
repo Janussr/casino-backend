@@ -15,6 +15,17 @@ namespace PokerProject.Services.Users
             _context = context;
         }
 
+        public async Task<int?> GetActiveGameIdByUserAsync(int userId)
+        {
+            var activeGameId = await _context.Players
+                .Include(p => p.Game)
+                .Where(p => p.UserId == userId && p.IsActive && !p.Game.IsFinished)
+                .Select(p => (int?)p.GameId)
+                .FirstOrDefaultAsync();
+
+            return activeGameId;
+        }
+
         public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
         {
             return await _context.Users.Select(u => new UserDto {
@@ -23,6 +34,8 @@ namespace PokerProject.Services.Users
                 }).ToListAsync();
         }
 
+
+        //måske slet denne, hvis jeg alligevel bruger extension helper User.getUserId();
         public async Task<UserDto?> GetUserByIdAsync(int id)
         {
             var user = await _context.Users.FindAsync(id);
@@ -89,6 +102,31 @@ namespace PokerProject.Services.Users
             };
         }
 
+        public async Task<UserDto?> PlayerUpdatePasswordAsync(int userId, string currentPassword, string newPassword)
+        {
+            // Find brugeren
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+                return null;
+
+            // Valider at currentPassword matcher det eksisterende
+            bool verified = BCrypt.Net.BCrypt.Verify(currentPassword, user.PasswordHash);
+            if (!verified)
+                throw new Exception("Current password is incorrect");
+
+            // Hash det nye password
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+
+            await _context.SaveChangesAsync();
+
+            return new UserDto
+            {
+                Id = user.Id,
+                Username = user.Username,
+                Role = user.Role
+            };
+        }
+
         public async Task<UserDto?> SetUserRoleAsync(SetUserRoleDto dto)
         {
             var user = await _context.Users.FindAsync(dto.UserId);
@@ -104,7 +142,29 @@ namespace PokerProject.Services.Users
                 Username = user.Username,
             };
         }
+
+    public async Task<UserDto?> PlayerUpdateUsernameAsync(int userId, string newUsername)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null) return null;
+
+            var existingUser = await _context.Users
+                .AnyAsync(u => u.Username == newUsername && u.Id != userId);
+            if (existingUser)
+                throw new Exception("Username already exists");
+
+            // Opdater username
+            user.Username = newUsername;
+            await _context.SaveChangesAsync();
+
+            return new UserDto
+            {
+                Id = user.Id,
+                Username = user.Username,
+                Role = user.Role
+            };
+        }
+
+
     }
-
-
 }
