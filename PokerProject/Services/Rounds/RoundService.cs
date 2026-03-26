@@ -40,72 +40,56 @@ namespace PokerProject.Services.Rounds
 
             if (currentRound != null)
             {
-                // Validating scores before ending the round
-                var activePlayers = game.Players
-                    .Where(p => p.IsActive)
-                    .Select(p => p.UserId)
-                    .ToList();
-
-                var playersWithScore = currentRound.Scores
-                    .Select(s => s.PlayerId)
-                    .Distinct()
-                    .ToList();
-
-                var missingPlayers = activePlayers
-                    .Except(playersWithScore)
-                    .ToList();
-
-                // End round
                 currentRound.EndedAt = DateTime.UtcNow;
             }
 
-            // New round number
-            var roundNumber = game.Rounds.Any()
-                ? game.Rounds.Max(r => r.RoundNumber) + 1
-                : 1;
-
+            // Opret ny runde
             var newRound = new Round
             {
                 GameId = gameId,
-                RoundNumber = roundNumber,
+                RoundNumber = game.Rounds.Any() ? game.Rounds.Max(r => r.RoundNumber) + 1 : 1,
                 StartedAt = DateTime.UtcNow
             };
 
             _context.Rounds.Add(newRound);
             await _context.SaveChangesAsync();
 
-            await transaction.CommitAsync();
-
-            //  SignalR (use currentRound!)
+            // Send RoundEnded event til klienter, hvis en runde blev afsluttet
             if (currentRound != null)
             {
-                await _hubContext.Clients.Group(gameId.ToString())
-                    .SendAsync(RoundEnded, new
+                var endedDto = new RoundDto
+                {
+                    Id = currentRound.Id,
+                    RoundNumber = currentRound.RoundNumber,
+                    EndedAt = currentRound.EndedAt,
+                    Scores = currentRound.Scores.Select(s => new ScoreDto
                     {
-                        currentRound.Id,
-                        currentRound.RoundNumber,
-                        currentRound.EndedAt
-                    });
+                        Id = s.Id,
+                        PlayerId = s.PlayerId,
+                        Points = s.Value,
+                        Type = s.Type
+                    }).ToList()
+                };
+
+                await _hubContext.Clients.Group($"Game-{gameId}")
+                    .SendAsync("RoundEnded", endedDto);
             }
 
-            await _hubContext.Clients.Group(gameId.ToString())
-                .SendAsync(RoundStarted, new
-                {
-                    newRound.Id,
-                    newRound.RoundNumber,
-                    newRound.StartedAt,
-                    Scores = new List<object>()
-                });
-
-            return new RoundDto
+            // Send RoundStarted til klienter
+            var newDto = new RoundDto
             {
                 Id = newRound.Id,
                 RoundNumber = newRound.RoundNumber,
-                StartedAt = newRound.StartedAt
+                StartedAt = newRound.StartedAt,
+                Scores = new List<ScoreDto>()
             };
+
+            await _hubContext.Clients.Group($"Game-{gameId}")
+                .SendAsync("RoundStarted", newDto);
+
+            return newDto;
+
+
         }
-
-        
-
     }
 }
