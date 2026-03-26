@@ -119,23 +119,27 @@ namespace PokerProject.Services.Bounties
                 })
                 .ToListAsync();
 
-            var userIds = knockoutsGrouped.Select(k => k.UserId)
+            var knockoutsDict = knockoutsGrouped.ToDictionary(k => k.UserId, k => new { k.Knockouts, k.TotalBountyPoints });
+            var timesKnockedOutDict = timesKnockedOutGrouped.ToDictionary(t => t.VictimUserId, t => t.TimesKnockedOut);
+
+            var allUserIds = knockoutsGrouped.Select(k => k.UserId)
                 .Union(timesKnockedOutGrouped.Select(t => t.VictimUserId))
                 .ToList();
 
             var users = await _context.Users
-                .Where(u => userIds.Contains(u.Id))
+                .Where(u => allUserIds.Contains(u.Id))
                 .ToListAsync();
 
             var leaderboard = users.Select(u => new BountyLeaderboardDto
             {
                 UserId = u.Id,
                 UserName = u.Username,
-                Knockouts = knockoutsGrouped.FirstOrDefault(k => k.UserId == u.Id)?.Knockouts ?? 0,
-                TimesKnockedOut = timesKnockedOutGrouped.FirstOrDefault(t => t.VictimUserId == u.Id)?.TimesKnockedOut ?? 0,
-                TotalBountyPoints = knockoutsGrouped.FirstOrDefault(k => k.UserId == u.Id)?.TotalBountyPoints ?? 0
+                Knockouts = knockoutsDict.ContainsKey(u.Id) ? knockoutsDict[u.Id].Knockouts : 0,
+                TotalBountyPoints = knockoutsDict.ContainsKey(u.Id) ? knockoutsDict[u.Id].TotalBountyPoints : 0,
+                TimesKnockedOut = timesKnockedOutDict.ContainsKey(u.Id) ? timesKnockedOutDict[u.Id] : 0
             })
             .OrderByDescending(x => x.Knockouts)
+            .ThenByDescending(x => x.TotalBountyPoints)
             .ToList();
 
             return leaderboard;
