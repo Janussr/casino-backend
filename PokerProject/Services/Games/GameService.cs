@@ -152,9 +152,8 @@ namespace PokerProject.Services.Games
                 throw new KeyNotFoundException("Game not found");
 
             if (game.IsFinished)
-                throw new InvalidOperationException("Game already finished");
+                return BuildFinishedGameDto(game);
 
-            // Afslut aktiv runde, hvis den findes
             var activeRound = game.Rounds.FirstOrDefault(r => r.EndedAt == null);
             if (activeRound != null)
                 activeRound.EndedAt = DateTime.UtcNow;
@@ -164,58 +163,99 @@ namespace PokerProject.Services.Games
                 throw new InvalidOperationException("No scores registered");
 
             var activePlayerIds = game.Players
-    .Where(p => p.IsActive)
-    .Select(p => p.Id)
-    .ToList();
+                .Where(p => p.IsActive)
+                .Select(p => p.Id)
+                .ToList();
 
-
-            // Summer scores pr. Player.Id
             var totals = allScores
-    .Where(s => activePlayerIds.Contains(s.PlayerId))
-    .GroupBy(s => s.PlayerId)
-    .Select(g => new
-    {
-        PlayerId = g.Key,
-        TotalScore = g.Sum(s => s.Value)
-    })
-    .OrderByDescending(x => x.TotalScore)
-    .ToList();
+                .Where(s => activePlayerIds.Contains(s.PlayerId))
+                .GroupBy(s => s.PlayerId)
+                .Select(g => new
+                {
+                    PlayerId = g.Key,
+                    TotalScore = g.Sum(s => s.Value)
+                })
+                .OrderByDescending(x => x.TotalScore)
+                .ToList();
 
             if (!totals.Any())
                 throw new InvalidOperationException("No active players to determine winner");
 
             var winnerData = totals.First();
 
-            // Find vinderen i Player-listen baseret på Player.Id
             var winnerPlayer = game.Players.FirstOrDefault(p => p.Id == winnerData.PlayerId);
             if (winnerPlayer == null)
                 throw new InvalidOperationException("Winner player not found in game");
 
-            // Sæt winner i Game
             game.WinnerPlayerId = winnerPlayer.Id;
             game.WinnerPlayer = winnerPlayer;
-
-            // Tilføj til HallOfFame
-            var hallOfFame = new HallOfFame
-            {
-                GameId = game.Id,
-                PlayerId = winnerPlayer.Id,
-                WinDate = DateTime.UtcNow
-            };
-            _context.HallOfFames.Add(hallOfFame);
-
-            // Afslut spillet
             game.IsFinished = true;
             game.EndedAt = DateTime.UtcNow;
 
-            await _context.SaveChangesAsync();
+            var hallOfFameExists = await _context.HallOfFames
+                .AnyAsync(h => h.GameId == game.Id);
 
-            // SIGNALR notification
+            if (!hallOfFameExists)
+            {
+                var hallOfFame = new HallOfFame
+                {
+                    GameId = game.Id,
+                    PlayerId = winnerPlayer.Id,
+                    WinDate = game.EndedAt.Value
+                };
+
+                _context.HallOfFames.Add(hallOfFame);
+            }
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                var finishedGame = await _context.Games
+                    .AsNoTracking()
+                    .Include(g => g.Rounds)
+                        .ThenInclude(r => r.Scores)
+                    .Include(g => g.Players)
+                        .ThenInclude(p => p.User)
+                    .FirstOrDefaultAsync(g => g.Id == gameId);
+
+                if (finishedGame != null && finishedGame.IsFinished)
+                    return BuildFinishedGameDto(finishedGame);
+
+                throw;
+            }
+
             await _hubContext.Clients
                 .Group($"Game-{game.Id}")
                 .SendAsync("GameFinished", game.Id);
 
-            // Returnér GameDto inkl. vinderen
+            return BuildFinishedGameDto(game);
+        }
+
+        private static GameDto BuildFinishedGameDto(Game game)
+        {
+            var winnerPlayer = game.Players.FirstOrDefault(p => p.Id == game.WinnerPlayerId);
+
+            WinnerDto? winnerDto = null;
+
+            if (winnerPlayer != null)
+            {
+                var winningScore = game.Rounds
+                    .SelectMany(r => r.Scores)
+                    .Where(s => s.PlayerId == winnerPlayer.Id)
+                    .Sum(s => s.Value);
+
+                winnerDto = new WinnerDto
+                {
+                    PlayerId = winnerPlayer.Id,
+                    UserName = winnerPlayer.User.Username,
+                    WinningScore = winningScore,
+                    WinDate = game.EndedAt ?? DateTime.UtcNow
+                };
+            }
+
             return new GameDto
             {
                 Id = game.Id,
@@ -223,13 +263,7 @@ namespace PokerProject.Services.Games
                 StartedAt = game.StartedAt,
                 EndedAt = game.EndedAt,
                 IsFinished = game.IsFinished,
-                Winner = new WinnerDto
-                {
-                    PlayerId = winnerPlayer.Id,
-                    UserName = winnerPlayer.User.Username,
-                    WinningScore = winnerData.TotalScore,
-                    WinDate = game.EndedAt.Value
-                }
+                Winner = winnerDto
             };
         }
 

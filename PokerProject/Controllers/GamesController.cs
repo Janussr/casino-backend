@@ -85,20 +85,6 @@ namespace PokerProject.Controllers
             }
         }
 
-        //[HttpGet("active")]
-        //public async Task<ActionResult<List<GameDto>>> GetActiveGames()
-        //{
-        //    try
-        //    {
-        //        var games = await _gameService.GetActiveGamesAsync();
-        //        return Ok(games);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return StatusCode(500, new { message = ex.Message });
-        //    }
-        //}
-
         [HttpGet("player-page/active")]
         public async Task<ActionResult<GameDto>> GetActiveGameForPlayer()
         {
