@@ -12,6 +12,7 @@ public class Game
     public DateTime StartedAt { get; set; } = DateTime.UtcNow;
     public DateTime? EndedAt { get; set; }
 
+    public bool IsOpenForPlayers { get; set; } = false;
     public bool IsFinished { get; set; }
     public int? WinnerPlayerId { get; set; }
     public Player? WinnerPlayer { get; set; }

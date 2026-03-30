@@ -32,7 +32,8 @@ namespace PokerProject.Services.Games
                 StartedAt = DateTime.UtcNow,
                 IsFinished = false,
                 Type = Game.GameType.Poker, 
-                GamemasterId = userId 
+                GamemasterId = userId,
+                IsOpenForPlayers = false
             };
 
             _context.Games.Add(game);
@@ -66,6 +67,21 @@ namespace PokerProject.Services.Games
             }
         }
             };
+        }
+
+        public async Task OpenGameForPlayers(int gameId)
+        {
+            var game = await _context.Games.FindAsync(gameId);
+
+            if (game == null)
+                throw new KeyNotFoundException("Game not found");
+
+            if (game.IsOpenForPlayers)
+                throw new InvalidOperationException("Game is already open");
+
+            game.IsOpenForPlayers = true;
+
+            await _context.SaveChangesAsync();
         }
 
 
@@ -271,7 +287,7 @@ namespace PokerProject.Services.Games
         {
             var game = await _context.Games
                 .Include(g => g.Rounds)
-    .ThenInclude(r => r.Scores)
+                    .ThenInclude(r => r.Scores)
                 .Include(g => g.Players)
                 .FirstOrDefaultAsync(g => g.Id == gameId);
 
@@ -299,9 +315,62 @@ namespace PokerProject.Services.Games
         }
 
 
-        public async Task<GamePanelDto?> GetActiveGameForGamePanelAsync(int userId)
+        //public async Task<GamePanelDto?> GetActiveGameForGamePanelAsync(int userId)
+        //{
+        //    var game = await _context.Games
+        //        .Where(g => !g.IsFinished && g.GamemasterId == userId)
+        //        .Include(g => g.Players)
+        //            .ThenInclude(p => p.User)
+        //        .Include(g => g.Rounds)
+        //            .ThenInclude(r => r.Scores)
+        //                .ThenInclude(s => s.Player)
+        //                    .ThenInclude(p => p.User)
+        //        .OrderByDescending(g => g.StartedAt)
+        //        .FirstOrDefaultAsync();
+
+        //    if (game == null) return null;
+
+        //    var activePlayers = game.Players.Where(p => p.IsActive).ToList();
+
+        //    return new GamePanelDto
+        //    {
+        //        Id = game.Id,
+        //        GameNumber = game.GameNumber,
+        //        StartedAt = game.StartedAt,
+        //        IsFinished = game.IsFinished,
+        //        IsOpenForPlayers = game.IsOpenForPlayers,
+        //        Type = game.Type,
+        //        RebuyValue = game.RebuyValue,
+        //        BountyValue = game.BountyValue,
+        //        Players = game.Players.Select(p => new PlayerDto
+        //        {
+        //            PlayerId = p.Id,
+        //            UserId = p.UserId,
+        //            Username = p.User.Username,
+        //            RebuyCount = p.RebuyCount,
+        //            ActiveBounties = p.ActiveBounties,
+        //            IsActive = p.IsActive
+        //        }).ToList(),
+        //        Rounds = game.Rounds.Select(r => new RoundDto
+        //        {
+        //            Id = r.Id,
+        //            RoundNumber = r.RoundNumber,
+        //            StartedAt = r.StartedAt,
+        //            Scores = r.Scores.Select(s => new ScoreDto
+        //            {
+        //                Id = s.Id,
+        //                PlayerId = s.Player.UserId,
+        //                UserName = s.Player.User.Username,
+        //                Points = s.Value,
+        //                Type = s.Type
+        //            }).ToList()
+        //        }).ToList()
+        //    };
+        //}
+
+        public async Task<List<GamePanelDto>> GetAllActiveGamesForGamePanelAsync(int userId)
         {
-            var game = await _context.Games
+            var games = await _context.Games
                 .Where(g => !g.IsFinished && g.GamemasterId == userId)
                 .Include(g => g.Players)
                     .ThenInclude(p => p.User)
@@ -310,18 +379,15 @@ namespace PokerProject.Services.Games
                         .ThenInclude(s => s.Player)
                             .ThenInclude(p => p.User)
                 .OrderByDescending(g => g.StartedAt)
-                .FirstOrDefaultAsync();
+                .ToListAsync();
 
-            if (game == null) return null;
-
-            var activePlayers = game.Players.Where(p => p.IsActive).ToList();
-
-            return new GamePanelDto
+            return games.Select(game => new GamePanelDto
             {
                 Id = game.Id,
                 GameNumber = game.GameNumber,
                 StartedAt = game.StartedAt,
                 IsFinished = game.IsFinished,
+                IsOpenForPlayers = game.IsOpenForPlayers,
                 Type = game.Type,
                 RebuyValue = game.RebuyValue,
                 BountyValue = game.BountyValue,
@@ -334,21 +400,24 @@ namespace PokerProject.Services.Games
                     ActiveBounties = p.ActiveBounties,
                     IsActive = p.IsActive
                 }).ToList(),
-                Rounds = game.Rounds.Select(r => new RoundDto
-                {
-                    Id = r.Id,
-                    RoundNumber = r.RoundNumber,
-                    StartedAt = r.StartedAt,
-                    Scores = r.Scores.Select(s => new ScoreDto
+                Rounds = game.Rounds
+                    .OrderBy(r => r.RoundNumber)
+                    .Select(r => new RoundDto
                     {
-                        Id = s.Id,
-                        PlayerId = s.Player.UserId,
-                        UserName = s.Player.User.Username,
-                        Points = s.Value,
-                        Type = s.Type
+                        Id = r.Id,
+                        RoundNumber = r.RoundNumber,
+                        StartedAt = r.StartedAt,
+                        EndedAt = r.EndedAt,
+                        Scores = r.Scores.Select(s => new ScoreDto
+                        {
+                            Id = s.Id,
+                            PlayerId = s.PlayerId,
+                            UserName = s.Player.User.Username,
+                            Points = s.Value,
+                            Type = s.Type
+                        }).ToList()
                     }).ToList()
-                }).ToList()
-            };
+            }).ToList();
         }
 
         public async Task<GameDetailsDto?> GetActiveGameForPlayerAsync(int userId)
@@ -753,7 +822,7 @@ namespace PokerProject.Services.Games
         public async Task<List<GameListDto>> GetActiveGamesLobbyListAsync()
         {
             return await _context.Games
-                .Where(g => !g.IsFinished)
+                .Where(g => !g.IsFinished && g.IsOpenForPlayers)
                 .Select(g => new GameListDto
                 {
                     Id = g.Id,

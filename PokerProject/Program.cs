@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 //using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using PokerProject.Data;
 using PokerProject.Hubs;
 using PokerProject.Services.Bounties;

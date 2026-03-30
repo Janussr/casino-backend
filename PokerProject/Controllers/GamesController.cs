@@ -34,6 +34,30 @@ namespace PokerProject.Controllers
         }
 
         [Authorize(Roles = "Admin, Gamemaster")]
+        [HttpPost("{gameId}/open")]
+        public async Task<ActionResult> OpenGame(int gameId)
+        {
+            try
+            {
+                await _gameService.OpenGameForPlayers(gameId);
+                return Ok();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+
+        [Authorize(Roles = "Admin, Gamemaster")]
         [HttpPost("{gameId}/end")]
         public async Task<ActionResult<GameDto>> EndGame(int gameId)
         {
@@ -102,14 +126,30 @@ namespace PokerProject.Controllers
             }
         }
 
+        //[Authorize(Roles = "Admin, Gamemaster")]
+        //[HttpGet("game-panel/active")]
+        //public async Task<ActionResult<GamePanelDto>> GetActiveGameForGamePanel()
+        //{
+        //    try
+        //    {
+        //        int userId = User.GetUserId();
+        //        var games = await _gameService.GetActiveGameForGamePanelAsync(userId);
+        //        return Ok(games);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, new { message = ex.Message });
+        //    }
+        //}
+
         [Authorize(Roles = "Admin, Gamemaster")]
-        [HttpGet("game-panel/active")]
-        public async Task<ActionResult<List<GamePanelDto>>> GetActiveGameForGamePanel()
+        [HttpGet("game-panel/active/all")]
+        public async Task<ActionResult<List<GamePanelDto>>> GetAllActiveGamesForGamePanel()
         {
             try
             {
                 int userId = User.GetUserId();
-                var games = await _gameService.GetActiveGameForGamePanelAsync(userId);
+                var games = await _gameService.GetAllActiveGamesForGamePanelAsync(userId);
                 return Ok(games);
             }
             catch (Exception ex)
@@ -119,7 +159,7 @@ namespace PokerProject.Controllers
         }
 
 
-        
+
 
 
         [HttpGet("{id}")]
