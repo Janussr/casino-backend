@@ -5,7 +5,7 @@ namespace PokerProject.Services.Games
 {
     public interface IGameService
     {
-        Task<GameDto> StartGameAsync(ClaimsPrincipal currentUser);
+        Task<GameDto> StartGameAsync(ClaimsPrincipal currentUser, StartGameRequestDto request);
         Task OpenGameForPlayers(int gameId);
         Task<GameDto> CancelGameAsync(int gameId);
         Task<PlayerDto> JoinGameAsPlayerAsync(int gameId, int userId);

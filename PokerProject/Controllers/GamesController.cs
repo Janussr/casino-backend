@@ -20,12 +20,12 @@ namespace PokerProject.Controllers
 
         [Authorize(Roles = "Admin, Gamemaster")]
         [HttpPost("start")]
-        public async Task<ActionResult<GameDto>> StartGame()
+        public async Task<ActionResult<GameDto>> StartGame([FromBody] StartGameRequestDto request)
         {
             try
             {
-                var gameDto = await _gameService.StartGameAsync(User);
-                return Ok(gameDto);
+                var game = await _gameService.StartGameAsync(User, request);
+                return Ok(game);
             }
             catch (Exception ex)
             {

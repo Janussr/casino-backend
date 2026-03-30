@@ -20,7 +20,9 @@ namespace PokerProject.Migrations
                     Username = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Role = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CurrentWinStreak = table.Column<int>(type: "int", nullable: false),
+                    BestWinStreak = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -42,6 +44,7 @@ namespace PokerProject.Migrations
                     IsOpenForPlayers = table.Column<bool>(type: "bit", nullable: false),
                     IsFinished = table.Column<bool>(type: "bit", nullable: false),
                     WinnerPlayerId = table.Column<int>(type: "int", nullable: true),
+                    JoinPasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Type = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
@@ -141,6 +144,37 @@ namespace PokerProject.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "PokerHandAchievements",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    GameId = table.Column<int>(type: "int", nullable: false),
+                    PlayerId = table.Column<int>(type: "int", nullable: false),
+                    AchievedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Type = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    HoleCards = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CommunityCards = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Notes = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PokerHandAchievements", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PokerHandAchievements_Games_GameId",
+                        column: x => x.GameId,
+                        principalTable: "Games",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_PokerHandAchievements_Players_PlayerId",
+                        column: x => x.PlayerId,
+                        principalTable: "Players",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Scores",
                 columns: table => new
                 {
@@ -212,6 +246,26 @@ namespace PokerProject.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_PokerHandAchievements_AchievedAt",
+                table: "PokerHandAchievements",
+                column: "AchievedAt");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PokerHandAchievements_GameId",
+                table: "PokerHandAchievements",
+                column: "GameId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PokerHandAchievements_PlayerId_Type",
+                table: "PokerHandAchievements",
+                columns: new[] { "PlayerId", "Type" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PokerHandAchievements_Type",
+                table: "PokerHandAchievements",
+                column: "Type");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Rounds_GameId_EndedAt",
                 table: "Rounds",
                 columns: new[] { "GameId", "EndedAt" },
@@ -257,6 +311,9 @@ namespace PokerProject.Migrations
 
             migrationBuilder.DropTable(
                 name: "HallOfFames");
+
+            migrationBuilder.DropTable(
+                name: "PokerHandAchievements");
 
             migrationBuilder.DropTable(
                 name: "Scores");

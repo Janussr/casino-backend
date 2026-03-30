@@ -19,7 +19,7 @@ namespace PokerProject.Services.Games
             _hubContext = hubContext;
         }
 
-        public async Task<GameDto> StartGameAsync(ClaimsPrincipal currentUser)
+        public async Task<GameDto> StartGameAsync(ClaimsPrincipal currentUser, StartGameRequestDto request)
         {
             if (currentUser == null)
                 throw new ArgumentNullException(nameof(currentUser));
@@ -31,7 +31,7 @@ namespace PokerProject.Services.Games
                 GameNumber = await GetNextGameNumber(),
                 StartedAt = DateTime.UtcNow,
                 IsFinished = false,
-                Type = Game.GameType.Poker, 
+                Type = request.Type,
                 GamemasterId = userId,
                 IsOpenForPlayers = false
             };
@@ -56,7 +56,7 @@ namespace PokerProject.Services.Games
                 StartedAt = game.StartedAt,
                 IsFinished = game.IsFinished,
                 Type = game.Type,
-                Players = new List<PlayerDto>(), 
+                Players = new List<PlayerDto>(),
                 Rounds = new List<RoundDto>
         {
             new RoundDto

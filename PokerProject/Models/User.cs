@@ -9,6 +9,9 @@
 
         public UserRole Role { get; set; } = UserRole.User;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        public int CurrentWinStreak { get; set; } = 0;
+        public int BestWinStreak { get; set; } = 0;
         public ICollection<HallOfFame> HallOfFames { get; set; } = new List<HallOfFame>();
         public ICollection<Player> Players { get; set; } = new List<Player>();
 

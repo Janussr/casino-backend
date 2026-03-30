@@ -12,7 +12,7 @@ using PokerProject.Data;
 namespace PokerProject.Migrations
 {
     [DbContext(typeof(PokerDbContext))]
-    [Migration("20260330142252_initial")]
+    [Migration("20260330182210_initial")]
     partial class initial
     {
         /// <inheritdoc />
@@ -50,6 +50,9 @@ namespace PokerProject.Migrations
 
                     b.Property<bool>("IsOpenForPlayers")
                         .HasColumnType("bit");
+
+                    b.Property<string>("JoinPasswordHash")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("RebuyValue")
                         .HasColumnType("int");
@@ -141,6 +144,49 @@ namespace PokerProject.Migrations
                     b.ToTable("Players");
                 });
 
+            modelBuilder.Entity("PokerProject.Models.PokerHandAchievement", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("AchievedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CommunityCards")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("GameId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("HoleCards")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("PlayerId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AchievedAt");
+
+                    b.HasIndex("GameId");
+
+                    b.HasIndex("Type");
+
+                    b.HasIndex("PlayerId", "Type");
+
+                    b.ToTable("PokerHandAchievements");
+                });
+
             modelBuilder.Entity("PokerProject.Models.Round", b =>
                 {
                     b.Property<int>("Id")
@@ -181,8 +227,14 @@ namespace PokerProject.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("BestWinStreak")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<int>("CurrentWinStreak")
+                        .HasColumnType("int");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
@@ -299,6 +351,25 @@ namespace PokerProject.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("PokerProject.Models.PokerHandAchievement", b =>
+                {
+                    b.HasOne("Game", "Game")
+                        .WithMany("PokerHandAchievements")
+                        .HasForeignKey("GameId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PokerProject.Models.Player", "Player")
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Game");
+
+                    b.Navigation("Player");
+                });
+
             modelBuilder.Entity("PokerProject.Models.Round", b =>
                 {
                     b.HasOne("Game", "Game")
@@ -338,6 +409,8 @@ namespace PokerProject.Migrations
             modelBuilder.Entity("Game", b =>
                 {
                     b.Navigation("Players");
+
+                    b.Navigation("PokerHandAchievements");
 
                     b.Navigation("Rounds");
                 });

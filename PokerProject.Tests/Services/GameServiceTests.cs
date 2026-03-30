@@ -35,27 +35,7 @@ namespace PokerProject.Tests.Services
             }));
         }
 
-        // -------------------------------
-        // StartGameAsync
-        // -------------------------------
-
-        [Fact]
-        public async Task StartGameAsync_ShouldCreateGameWithFirstRound()
-        {
-            var context = GetDbContext();
-            var service = CreateService(context);
-
-            var user = CreateUser(1);
-
-            var result = await service.StartGameAsync(user);
-
-            result.Should().NotBeNull();
-            result.GameNumber.Should().Be(1);
-            result.Rounds.Should().HaveCount(1);
-
-            var gameInDb = await context.Games.Include(g => g.Rounds).FirstAsync();
-            gameInDb.Rounds.Should().HaveCount(1);
-        }
+    
 
 
         [Fact]

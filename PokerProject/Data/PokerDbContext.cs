@@ -14,6 +14,7 @@ namespace PokerProject.Data
         public DbSet<Round> Rounds { get; set; }
         public DbSet<Score> Scores { get; set; }
         public DbSet<HallOfFame> HallOfFames { get; set; }
+        public DbSet<PokerHandAchievement> PokerHandAchievements { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -30,6 +31,10 @@ namespace PokerProject.Data
 
             modelBuilder.Entity<Score>()
                 .Property(s => s.Type)
+                .HasConversion<string>();
+
+            modelBuilder.Entity<PokerHandAchievement>()
+                .Property(a => a.Type)
                 .HasConversion<string>();
 
             // =========================
@@ -130,6 +135,32 @@ namespace PokerProject.Data
             modelBuilder.Entity<HallOfFame>()
             .Ignore("UserId");
 
+
+            //=========================
+            //Poker hand achievements
+            //=========================
+            modelBuilder.Entity<Game>()
+            .HasMany(g => g.PokerHandAchievements)
+            .WithOne(a => a.Game)
+            .HasForeignKey(a => a.GameId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<PokerHandAchievement>()
+                .HasOne(a => a.Player)
+                .WithMany()
+                .HasForeignKey(a => a.PlayerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+
+            modelBuilder.Entity<PokerHandAchievement>()
+                .HasIndex(a => a.Type); 
+
+            modelBuilder.Entity<PokerHandAchievement>()
+                .HasIndex(a => new { a.PlayerId, a.Type });
+
+            modelBuilder.Entity<PokerHandAchievement>()
+                .HasIndex(a => a.AchievedAt);
 
 
             base.OnModelCreating(modelBuilder);
