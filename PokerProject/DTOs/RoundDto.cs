@@ -4,8 +4,8 @@
     {
         public int Id { get; set; }
         public int RoundNumber { get; set; }    
-        public DateTime StartedAt { get; set; }
-        public DateTime? EndedAt { get; set; }
+        public DateTimeOffset StartedAt { get; set; }
+        public DateTimeOffset? EndedAt { get; set; }
 
         public List<ScoreDto> Scores { get; set; } = new();
 

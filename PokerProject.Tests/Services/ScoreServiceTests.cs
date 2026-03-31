@@ -45,14 +45,14 @@ namespace PokerProject.Tests.Services
             var context = GetDbContext();
             var service = CreateService(context);
 
-            var game = new Game { GameNumber = 1, StartedAt = DateTime.UtcNow };
+            var game = new Game { GameNumber = 1, StartedAt = DateTimeOffset.UtcNow };
             context.Games.Add(game);
 
             var round = new Round
             {
                 GameId = game.Id,
                 RoundNumber = 1,
-                StartedAt = DateTime.UtcNow
+                StartedAt = DateTimeOffset.UtcNow
             };
             context.Rounds.Add(round);
 
@@ -74,7 +74,7 @@ namespace PokerProject.Tests.Services
             var context = GetDbContext();
             var service = CreateService(context);
 
-            var game = new Game { GameNumber = 1, StartedAt = DateTime.UtcNow };
+            var game = new Game { GameNumber = 1, StartedAt = DateTimeOffset.UtcNow };
             context.Games.Add(game);
             await context.SaveChangesAsync();
 
@@ -114,7 +114,7 @@ namespace PokerProject.Tests.Services
             var game = new Game
             {
                 GameNumber = 1,
-                StartedAt = DateTime.UtcNow,
+                StartedAt = DateTimeOffset.UtcNow,
                 IsFinished = true
             };
             context.Games.Add(game);

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace PokerProject.Migrations
 {
     /// <inheritdoc />
-    public partial class initial : Migration
+    public partial class initialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -20,7 +20,7 @@ namespace PokerProject.Migrations
                     Username = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Role = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     CurrentWinStreak = table.Column<int>(type: "int", nullable: false),
                     BestWinStreak = table.Column<int>(type: "int", nullable: false)
                 },
@@ -39,8 +39,8 @@ namespace PokerProject.Migrations
                     GamemasterId = table.Column<int>(type: "int", nullable: false),
                     RebuyValue = table.Column<int>(type: "int", nullable: true),
                     BountyValue = table.Column<int>(type: "int", nullable: true),
-                    StartedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    EndedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    StartedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    EndedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     IsOpenForPlayers = table.Column<bool>(type: "bit", nullable: false),
                     IsFinished = table.Column<bool>(type: "bit", nullable: false),
                     WinnerPlayerId = table.Column<int>(type: "int", nullable: true),
@@ -66,7 +66,7 @@ namespace PokerProject.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     GameId = table.Column<int>(type: "int", nullable: false),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
-                    LeftAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    LeftAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     RebuyCount = table.Column<int>(type: "int", nullable: false),
                     ActiveBounties = table.Column<int>(type: "int", nullable: false),
                     UserId = table.Column<int>(type: "int", nullable: false)
@@ -96,8 +96,8 @@ namespace PokerProject.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     GameId = table.Column<int>(type: "int", nullable: false),
                     RoundNumber = table.Column<int>(type: "int", nullable: false),
-                    StartedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    EndedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    StartedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    EndedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -118,7 +118,7 @@ namespace PokerProject.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     GameId = table.Column<int>(type: "int", nullable: false),
                     PlayerId = table.Column<int>(type: "int", nullable: false),
-                    WinDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    WinDate = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     UserId1 = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
@@ -151,7 +151,7 @@ namespace PokerProject.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     GameId = table.Column<int>(type: "int", nullable: false),
                     PlayerId = table.Column<int>(type: "int", nullable: false),
-                    AchievedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    AchievedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     Type = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     HoleCards = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CommunityCards = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -183,7 +183,7 @@ namespace PokerProject.Migrations
                     RoundId = table.Column<int>(type: "int", nullable: true),
                     PlayerId = table.Column<int>(type: "int", nullable: false),
                     Value = table.Column<int>(type: "int", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     VictimPlayerId = table.Column<int>(type: "int", nullable: true),
                     Type = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },

@@ -29,7 +29,7 @@ namespace PokerProject.Services.Games
             var game = new Game
             {
                 GameNumber = await GetNextGameNumber(),
-                StartedAt = DateTime.UtcNow,
+                StartedAt = DateTimeOffset.UtcNow,
                 IsFinished = false,
                 Type = request.Type,
                 GamemasterId = userId,
@@ -43,7 +43,7 @@ namespace PokerProject.Services.Games
             {
                 GameId = game.Id,
                 RoundNumber = 1,
-                StartedAt = DateTime.UtcNow
+                StartedAt = DateTimeOffset.UtcNow
             };
 
             _context.Rounds.Add(firstRound);
@@ -172,7 +172,7 @@ namespace PokerProject.Services.Games
 
             var activeRound = game.Rounds.FirstOrDefault(r => r.EndedAt == null);
             if (activeRound != null)
-                activeRound.EndedAt = DateTime.UtcNow;
+                activeRound.EndedAt = DateTimeOffset.UtcNow;
 
             var allScores = game.Rounds.SelectMany(r => r.Scores).ToList();
             if (!allScores.Any())
@@ -206,7 +206,7 @@ namespace PokerProject.Services.Games
             game.WinnerPlayerId = winnerPlayer.Id;
             game.WinnerPlayer = winnerPlayer;
             game.IsFinished = true;
-            game.EndedAt = DateTime.UtcNow;
+            game.EndedAt = DateTimeOffset.UtcNow;
 
             var hallOfFameExists = await _context.HallOfFames
                 .AnyAsync(h => h.GameId == game.Id);
@@ -268,7 +268,7 @@ namespace PokerProject.Services.Games
                     PlayerId = winnerPlayer.Id,
                     UserName = winnerPlayer.User.Username,
                     WinningScore = winningScore,
-                    WinDate = game.EndedAt ?? DateTime.UtcNow
+                    WinDate = game.EndedAt ?? DateTimeOffset.UtcNow
                 };
             }
 
@@ -309,7 +309,7 @@ namespace PokerProject.Services.Games
                 Id = game.Id,
                 GameNumber = game.GameNumber,
                 StartedAt = game.StartedAt,
-                EndedAt = DateTime.UtcNow,
+                EndedAt = DateTimeOffset.UtcNow,
                 IsFinished = true
             };
         }
@@ -473,7 +473,7 @@ namespace PokerProject.Services.Games
                     PlayerId = game.WinnerPlayer.Id,
                     UserName = game.WinnerPlayer.User.Username,
                     WinningScore = winningScore,
-                    WinDate = game.EndedAt ?? DateTime.UtcNow
+                    WinDate = game.EndedAt ?? DateTimeOffset.UtcNow
                 };
             }
 
@@ -488,6 +488,7 @@ namespace PokerProject.Services.Games
                 BountyValue = game.BountyValue,
                 Scores = scores,
                 Players = players,
+                Type = game.Type,
                 Winner = winnerDto,
                 Rounds = game.Rounds.Select(r => new RoundDto
                 {
@@ -579,7 +580,7 @@ namespace PokerProject.Services.Games
                             .SelectMany(r => r.Scores)
                             .Where(s => s.PlayerId == g.WinnerPlayerId)
                             .Sum(s => s.Value),
-                        WinDate = g.EndedAt ?? DateTime.UtcNow
+                        WinDate = g.EndedAt ?? DateTimeOffset.UtcNow
                     }
                 })
                 .ToListAsync();
@@ -625,7 +626,7 @@ namespace PokerProject.Services.Games
         .SelectMany(r => r.Scores)
         .Where(s => s.PlayerId == g.WinnerPlayerId)
         .Sum(s => s.Value),
-                        WinDate = g.EndedAt ?? DateTime.UtcNow
+                        WinDate = g.EndedAt ?? DateTimeOffset.UtcNow
                     }
                 })
                 .ToListAsync();
@@ -731,7 +732,7 @@ namespace PokerProject.Services.Games
                     PlayerId = game.WinnerPlayer.Id,
                     UserName = game.WinnerPlayer.User.Username,
                     WinningScore = winningScore,
-                    WinDate = game.EndedAt ?? DateTime.UtcNow
+                    WinDate = game.EndedAt ?? DateTimeOffset.UtcNow
                 };
             }
 
@@ -813,7 +814,7 @@ namespace PokerProject.Services.Games
                 throw new InvalidOperationException("Player already inactive");
 
             player.IsActive = false;
-            player.LeftAt = DateTime.UtcNow;
+            player.LeftAt = DateTimeOffset.UtcNow;
 
             await _context.SaveChangesAsync();
         }

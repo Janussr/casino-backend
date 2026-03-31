@@ -7,7 +7,7 @@ namespace PokerProject.DTOs
     {
         public int Id { get; set; }
         public int Points { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public DateTimeOffset CreatedAt { get; set; }
         public ScoreType Type { get; set; }
         public int? VictimUserId { get; set; }
         public string? VictimUserName { get; set; }

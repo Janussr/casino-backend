@@ -40,7 +40,7 @@ namespace PokerProject.Services.Rounds
 
             if (currentRound != null)
             {
-                currentRound.EndedAt = DateTime.UtcNow;
+                currentRound.EndedAt = DateTimeOffset.UtcNow;
             }
 
             // Opret ny runde
@@ -48,7 +48,7 @@ namespace PokerProject.Services.Rounds
             {
                 GameId = gameId,
                 RoundNumber = game.Rounds.Any() ? game.Rounds.Max(r => r.RoundNumber) + 1 : 1,
-                StartedAt = DateTime.UtcNow
+                StartedAt = DateTimeOffset.UtcNow
             };
 
             _context.Rounds.Add(newRound);

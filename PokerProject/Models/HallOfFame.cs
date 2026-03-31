@@ -7,6 +7,6 @@
         public Game Game { get; set; } = null!;
         public int PlayerId { get; set; }
         public Player Player { get; set; } = null!;
-        public DateTime WinDate { get; set; } = DateTime.UtcNow;
+        public DateTimeOffset WinDate { get; set; } = DateTimeOffset.UtcNow;
     }
 }

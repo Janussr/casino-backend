@@ -9,8 +9,8 @@ public class Game
     public User Gamemaster { get; set; } = null;
     public int? RebuyValue { get; set; }
     public int? BountyValue { get; set; }
-    public DateTime StartedAt { get; set; } = DateTime.UtcNow;
-    public DateTime? EndedAt { get; set; }
+    public DateTimeOffset StartedAt { get; set; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset? EndedAt { get; set; }
 
     public bool IsOpenForPlayers { get; set; } = false;
     public bool IsFinished { get; set; }

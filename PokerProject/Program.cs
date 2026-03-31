@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
-//using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using PokerProject.Data;
 using PokerProject.Hubs;
@@ -17,8 +16,6 @@ var builder = WebApplication.CreateBuilder(args);
 //Using a nugetpackage to load .env file when testing in local
 DotNetEnv.Env.Load();
 
-//Connection string for database, loaded from env variable
-//var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
 
 // Add services to the container.
 builder.Services.AddControllers();
@@ -27,9 +24,12 @@ builder.Services.AddOpenApi();
 
 
 // DATABASE 
-//incomment for local db
+//INCOMMENT FOR LOCAL DB
 builder.Services.AddDbContext<PokerDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-//incomment for prod db
+
+//INCOMMENT FOR PROD DB
+//Connection string for online database, loaded from env variable
+//var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
 //builder.Services.AddDbContext<PokerDbContext>(options => options.UseSqlServer(connectionString));
 
 //Dependency Injection for services

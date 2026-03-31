@@ -11,7 +11,7 @@ public class Score
     public Player Player { get; set; } = null!;
 
     public int Value { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 
 
      public int? VictimPlayerId { get; set; }

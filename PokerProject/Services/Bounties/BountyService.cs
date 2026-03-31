@@ -61,7 +61,7 @@ namespace PokerProject.Services.Bounties
                 VictimPlayerId = victim.Id,
                 Value = points,
                 Type = Score.ScoreType.Bounty,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTimeOffset.UtcNow
             };
 
             _context.Scores.Add(score);

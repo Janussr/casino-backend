@@ -8,7 +8,7 @@
         public string PasswordHash { get; set; } = null!;
 
         public UserRole Role { get; set; } = UserRole.User;
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 
         public int CurrentWinStreak { get; set; } = 0;
         public int BestWinStreak { get; set; } = 0;

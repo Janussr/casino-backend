@@ -12,8 +12,8 @@ using PokerProject.Data;
 namespace PokerProject.Migrations
 {
     [DbContext(typeof(PokerDbContext))]
-    [Migration("20260330182210_initial")]
-    partial class initial
+    [Migration("20260331145210_initialCreate")]
+    partial class initialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -36,8 +36,8 @@ namespace PokerProject.Migrations
                     b.Property<int?>("BountyValue")
                         .HasColumnType("int");
 
-                    b.Property<DateTime?>("EndedAt")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTimeOffset?>("EndedAt")
+                        .HasColumnType("datetimeoffset");
 
                     b.Property<int>("GameNumber")
                         .HasColumnType("int");
@@ -57,8 +57,8 @@ namespace PokerProject.Migrations
                     b.Property<int?>("RebuyValue")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("StartedAt")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTimeOffset>("StartedAt")
+                        .HasColumnType("datetimeoffset");
 
                     b.Property<string>("Type")
                         .IsRequired()
@@ -93,8 +93,8 @@ namespace PokerProject.Migrations
                     b.Property<int?>("UserId1")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("WinDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTimeOffset>("WinDate")
+                        .HasColumnType("datetimeoffset");
 
                     b.HasKey("Id");
 
@@ -125,8 +125,8 @@ namespace PokerProject.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
-                    b.Property<DateTime?>("LeftAt")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTimeOffset?>("LeftAt")
+                        .HasColumnType("datetimeoffset");
 
                     b.Property<int>("RebuyCount")
                         .HasColumnType("int");
@@ -152,8 +152,8 @@ namespace PokerProject.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("AchievedAt")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTimeOffset>("AchievedAt")
+                        .HasColumnType("datetimeoffset");
 
                     b.Property<string>("CommunityCards")
                         .HasColumnType("nvarchar(max)");
@@ -195,8 +195,8 @@ namespace PokerProject.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime?>("EndedAt")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTimeOffset?>("EndedAt")
+                        .HasColumnType("datetimeoffset");
 
                     b.Property<int>("GameId")
                         .HasColumnType("int");
@@ -204,8 +204,8 @@ namespace PokerProject.Migrations
                     b.Property<int>("RoundNumber")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("StartedAt")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTimeOffset>("StartedAt")
+                        .HasColumnType("datetimeoffset");
 
                     b.HasKey("Id");
 
@@ -230,8 +230,8 @@ namespace PokerProject.Migrations
                     b.Property<int>("BestWinStreak")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
 
                     b.Property<int>("CurrentWinStreak")
                         .HasColumnType("int");
@@ -261,8 +261,8 @@ namespace PokerProject.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
 
                     b.Property<int>("PlayerId")
                         .HasColumnType("int");

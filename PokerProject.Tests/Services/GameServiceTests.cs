@@ -63,7 +63,7 @@ namespace PokerProject.Tests.Services
             var game = new Game
             {
                 GameNumber = 1,
-                StartedAt = DateTime.UtcNow
+                StartedAt = DateTimeOffset.UtcNow
             };
 
             context.Games.Add(game);
@@ -86,7 +86,7 @@ namespace PokerProject.Tests.Services
             var game = new Game
             {
                 GameNumber = 1,
-                StartedAt = DateTime.UtcNow
+                StartedAt = DateTimeOffset.UtcNow
             };
 
             context.Games.Add(game);
@@ -129,7 +129,7 @@ namespace PokerProject.Tests.Services
             var game = new Game
             {
                 GameNumber = 1,
-                StartedAt = DateTime.UtcNow
+                StartedAt = DateTimeOffset.UtcNow
             };
 
             context.Games.Add(game);

@@ -2,11 +2,8 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using PokerProject.DTOs;
-using PokerProject.Models;
 using PokerProject.Services.Users;
-using System.Data;
 using System.Security.Claims;
 
 [ApiController]
@@ -124,16 +121,19 @@ public class UsersController : ControllerBase
     [HttpGet("me")]
     public async Task<ActionResult<UserDto>> Me()
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (userIdClaim == null) return Unauthorized();
+        try
+        {
+            var userId = User.GetUserId();
 
-        if (!int.TryParse(userIdClaim, out var userId))
+            var user = await _userService.GetUserByIdAsync(userId);
+            if (user == null) return NotFound();
+
+            return Ok(user);
+        }
+        catch
+        {
             return Unauthorized();
-
-        var user = await _userService.GetUserByIdAsync(int.Parse(userIdClaim));
-        if (user == null) return NotFound();
-
-        return Ok(user);
+        }
     }
 
     [Authorize(Roles = "Admin")]

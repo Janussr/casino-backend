@@ -109,7 +109,7 @@ namespace PokerProject.Services.Players
                 return;
 
             player.IsActive = false;
-            player.LeftAt = DateTime.UtcNow;
+            player.LeftAt = DateTimeOffset.UtcNow;
 
             await _context.SaveChangesAsync();
         }
@@ -126,7 +126,7 @@ namespace PokerProject.Services.Players
                 return;
 
             player.IsActive = false;
-            player.LeftAt = DateTime.UtcNow;
+            player.LeftAt = DateTimeOffset.UtcNow;
 
             await _context.SaveChangesAsync();
 

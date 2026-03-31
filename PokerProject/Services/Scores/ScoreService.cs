@@ -61,7 +61,7 @@ namespace PokerProject.Services.Scores
                 RoundId = round.Id,
                 PlayerId = targetPlayer.Id,
                 Value = points,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = DateTimeOffset.UtcNow,
                 Type = Score.ScoreType.Chips,
             };
 
@@ -123,7 +123,7 @@ namespace PokerProject.Services.Scores
                         RoundId = round.Id,
                         PlayerId = player.Id,
                         Value = s.Points,
-                        CreatedAt = DateTime.UtcNow,
+                        CreatedAt = DateTimeOffset.UtcNow,
                         Type = Score.ScoreType.Chips,
                     };
 
@@ -271,7 +271,7 @@ namespace PokerProject.Services.Scores
                 RoundId = round.Id,
                 PlayerId = player.Id,
                 Value = -game.RebuyValue.Value,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = DateTimeOffset.UtcNow,
                 Type = Score.ScoreType.Rebuy,
             };
 

@@ -4,7 +4,7 @@
     {
         public int Id { get; set; }
         public int GameNumber { get; set; }
-        public DateTime StartedAt { get; set; }
+        public DateTimeOffset StartedAt { get; set; }
         public bool IsFinished { get; set; }
         public bool IsOpenForPlayers { get; set; }
         public Game.GameType Type { get; set; }

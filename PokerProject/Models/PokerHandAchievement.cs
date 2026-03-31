@@ -10,7 +10,7 @@
         public int PlayerId { get; set; }
         public Player Player { get; set; } = null!;
 
-        public DateTime AchievedAt { get; set; } = DateTime.UtcNow;
+        public DateTimeOffset AchievedAt { get; set; } = DateTimeOffset.UtcNow;
 
         public AchievementType Type { get; set; }
 

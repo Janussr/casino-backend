@@ -9,8 +9,8 @@
 
         public int RoundNumber { get; set; } 
 
-        public DateTime StartedAt { get; set; }
-        public DateTime? EndedAt { get; set; }
+        public DateTimeOffset StartedAt { get; set; } = DateTimeOffset.UtcNow;
+        public DateTimeOffset? EndedAt { get; set; }
 
         public ICollection<Score> Scores { get; set; } = new List<Score>();
     }

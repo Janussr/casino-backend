@@ -4,9 +4,10 @@
     {
         public int Id { get; set; }
         public int GameNumber { get; set; }
-        public DateTime StartedAt { get; set; }
-        public DateTime? EndedAt { get; set; }
+        public DateTimeOffset StartedAt { get; set; }
+        public DateTimeOffset? EndedAt { get; set; }
         public bool IsFinished { get; set; }
+        public Game.GameType Type { get; set; }
         public List<GameScoreboardDto> Scores { get; set; } = new();
         public List<RoundDto> Rounds { get; set; } = new();
         public List<PlayerDto> Players { get; set; }
