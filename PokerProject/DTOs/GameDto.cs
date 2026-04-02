@@ -3,7 +3,6 @@
     public class GameDto
     {
         public int Id { get; set; }
-        public int PlayerId { get; set; }
         public int GameNumber { get; set; }
         public DateTimeOffset StartedAt { get; set; }
         public DateTimeOffset? EndedAt { get; set; }
@@ -16,7 +15,6 @@
         public List<ScoreDto> Scores { get; set; } = new();
         public List<RoundDto> Rounds { get; set; } = [];
 
-        public int? WinnerPlayerId { get; set; }
         public WinnerDto? Winner { get; set; }
     }
 }

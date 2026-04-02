@@ -598,6 +598,7 @@ namespace PokerProject.Services.Games
                     IsFinished = g.IsFinished,
                     RebuyValue = g.RebuyValue,
                     BountyValue = g.BountyValue,
+                    Type = g.Type,
 
                     Players = g.Players.Select(p => new PlayerDto
                     {
@@ -615,17 +616,33 @@ namespace PokerProject.Services.Games
                             PlayerId = s.Player.UserId,
                             UserName = s.Player.User.Username,
                             Points = s.Value,
-                            Type = s.Type
+                            Type = s.Type,
                         }).ToList(),
 
+                    Rounds = g.Rounds
+                .Select(r => new RoundDto
+                {
+                    Id = r.Id,
+                    RoundNumber = r.RoundNumber,
+                    StartedAt = r.StartedAt,
+                    EndedAt = r.EndedAt,
+                    Scores = r.Scores.Select(s => new ScoreDto
+                    {
+                        Id = s.Id,
+                        PlayerId = s.Player.UserId,
+                        UserName = s.Player.User.Username,
+                        Points = s.Value,
+                        Type = s.Type,
+                    }).ToList()
+                }).ToList(),
                     Winner = g.WinnerPlayer == null ? null : new WinnerDto
                     {
                         PlayerId = g.WinnerPlayer.UserId,
                         UserName = g.WinnerPlayer.User.Username,
                         WinningScore = g.Rounds
-        .SelectMany(r => r.Scores)
-        .Where(s => s.PlayerId == g.WinnerPlayerId)
-        .Sum(s => s.Value),
+                        .SelectMany(r => r.Scores)
+                        .Where(s => s.PlayerId == g.WinnerPlayerId)
+                        .Sum(s => s.Value),
                         WinDate = g.EndedAt ?? DateTimeOffset.UtcNow
                     }
                 })
