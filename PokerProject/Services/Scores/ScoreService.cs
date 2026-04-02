@@ -168,7 +168,6 @@ namespace PokerProject.Services.Scores
             if (player == null)
                 throw new KeyNotFoundException("Player not found in this game");
 
-            // Hent alle scores for denne player i spillet
             var scores = await _context.Scores
                 .Include(s => s.VictimPlayer)
                     .ThenInclude(v => v.User)
@@ -180,7 +179,6 @@ namespace PokerProject.Services.Scores
             if (!scores.Any())
                 throw new KeyNotFoundException("No scores found for this player in this game");
 
-            // Gruppér scores per round
             var roundGroups = scores
                 .GroupBy(s => s.RoundId)
                 .Select(g => new RoundScoreDto

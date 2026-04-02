@@ -35,7 +35,6 @@ namespace PokerProject.Services.Users
         }
 
 
-        //måske slet denne, hvis jeg alligevel bruger extension helper User.getUserId();
         public async Task<UserDto?> GetUserByIdAsync(int id)
         {
             var user = await _context.Users.FindAsync(id);
@@ -114,17 +113,14 @@ namespace PokerProject.Services.Users
 
         public async Task<UserDto?> PlayerUpdatePasswordAsync(int userId, string currentPassword, string newPassword)
         {
-            // Find brugeren
             var user = await _context.Users.FindAsync(userId);
             if (user == null)
                 return null;
 
-            // Valider at currentPassword matcher det eksisterende
             bool verified = BCrypt.Net.BCrypt.Verify(currentPassword, user.PasswordHash);
             if (!verified)
                 throw new Exception("Current password is incorrect");
 
-            // Hash det nye password
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
 
             await _context.SaveChangesAsync();
@@ -163,7 +159,6 @@ namespace PokerProject.Services.Users
             if (existingUser)
                 throw new Exception("Username already exists");
 
-            // Opdater username
             user.Username = newUsername;
             await _context.SaveChangesAsync();
 

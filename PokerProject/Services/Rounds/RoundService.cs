@@ -43,7 +43,6 @@ namespace PokerProject.Services.Rounds
                 currentRound.EndedAt = DateTimeOffset.UtcNow;
             }
 
-            // Opret ny runde
             var newRound = new Round
             {
                 GameId = gameId,
@@ -55,7 +54,6 @@ namespace PokerProject.Services.Rounds
             await _context.SaveChangesAsync();
 
 
-            // Send RoundEnded event til klienter, hvis en runde blev afsluttet
             if (currentRound != null)
             {
                 var endedDto = new RoundDto
@@ -74,7 +72,6 @@ namespace PokerProject.Services.Rounds
 
             }
 
-            // Send RoundStarted til klienter
             var newDto = new RoundDto
             {
                 Id = newRound.Id,
@@ -86,6 +83,7 @@ namespace PokerProject.Services.Rounds
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
 
+            // Send RoundStarted to clients
             await _hubContext.Clients.Group($"Game-{gameId}")
                 .SendAsync("RoundStarted", newDto);
 

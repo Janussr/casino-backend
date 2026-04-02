@@ -314,60 +314,6 @@ namespace PokerProject.Services.Games
             };
         }
 
-
-        //public async Task<GamePanelDto?> GetActiveGameForGamePanelAsync(int userId)
-        //{
-        //    var game = await _context.Games
-        //        .Where(g => !g.IsFinished && g.GamemasterId == userId)
-        //        .Include(g => g.Players)
-        //            .ThenInclude(p => p.User)
-        //        .Include(g => g.Rounds)
-        //            .ThenInclude(r => r.Scores)
-        //                .ThenInclude(s => s.Player)
-        //                    .ThenInclude(p => p.User)
-        //        .OrderByDescending(g => g.StartedAt)
-        //        .FirstOrDefaultAsync();
-
-        //    if (game == null) return null;
-
-        //    var activePlayers = game.Players.Where(p => p.IsActive).ToList();
-
-        //    return new GamePanelDto
-        //    {
-        //        Id = game.Id,
-        //        GameNumber = game.GameNumber,
-        //        StartedAt = game.StartedAt,
-        //        IsFinished = game.IsFinished,
-        //        IsOpenForPlayers = game.IsOpenForPlayers,
-        //        Type = game.Type,
-        //        RebuyValue = game.RebuyValue,
-        //        BountyValue = game.BountyValue,
-        //        Players = game.Players.Select(p => new PlayerDto
-        //        {
-        //            PlayerId = p.Id,
-        //            UserId = p.UserId,
-        //            Username = p.User.Username,
-        //            RebuyCount = p.RebuyCount,
-        //            ActiveBounties = p.ActiveBounties,
-        //            IsActive = p.IsActive
-        //        }).ToList(),
-        //        Rounds = game.Rounds.Select(r => new RoundDto
-        //        {
-        //            Id = r.Id,
-        //            RoundNumber = r.RoundNumber,
-        //            StartedAt = r.StartedAt,
-        //            Scores = r.Scores.Select(s => new ScoreDto
-        //            {
-        //                Id = s.Id,
-        //                PlayerId = s.Player.UserId,
-        //                UserName = s.Player.User.Username,
-        //                Points = s.Value,
-        //                Type = s.Type
-        //            }).ToList()
-        //        }).ToList()
-        //    };
-        //}
-
         public async Task<List<GamePanelDto>> GetAllActiveGamesForGamePanelAsync(int userId)
         {
             var games = await _context.Games

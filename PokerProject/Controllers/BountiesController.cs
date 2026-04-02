@@ -28,7 +28,7 @@ namespace PokerProject.Controllers
             {
                 var result = await _bountyService.PlayerKnockoutAsync(
                     request.GameId,
-                    User.GetUserId(),        // sender kun UserId
+                    User.GetUserId(),       
                     request.VictimPlayerId
                 );
 

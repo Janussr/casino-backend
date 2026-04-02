@@ -44,7 +44,7 @@ namespace PokerProject.Data
                 .HasMany(u => u.Players)
                 .WithOne(p => p.User)
                 .HasForeignKey(p => p.UserId)
-                .OnDelete(DeleteBehavior.Cascade); // slet players når user slettes
+                .OnDelete(DeleteBehavior.Cascade); 
 
             // =========================
             // GAME → GAMEMASTER / WINNERPLAYER
@@ -68,13 +68,13 @@ namespace PokerProject.Data
                 .HasMany(g => g.Players)
                 .WithOne(p => p.Game)
                 .HasForeignKey(p => p.GameId)
-                .OnDelete(DeleteBehavior.Cascade); // slet players når game slettes
+                .OnDelete(DeleteBehavior.Cascade); 
 
             modelBuilder.Entity<Game>()
                 .HasMany(g => g.Rounds)
                 .WithOne(r => r.Game)
                 .HasForeignKey(r => r.GameId)
-                .OnDelete(DeleteBehavior.Cascade); // slet rounds når game slettes
+                .OnDelete(DeleteBehavior.Cascade); 
 
             // =========================
             // PLAYER UNIQUE INDEX
@@ -100,7 +100,7 @@ namespace PokerProject.Data
                 .HasMany(r => r.Scores)
                 .WithOne(s => s.Round)
                 .HasForeignKey(s => s.RoundId)
-                .OnDelete(DeleteBehavior.Cascade); // slet scores når round slettes
+                .OnDelete(DeleteBehavior.Cascade); 
 
             // =========================
             // SCORE → PLAYER / VICTIMPLAYER
@@ -109,7 +109,7 @@ namespace PokerProject.Data
                 .HasOne(s => s.Player)
                 .WithMany()
                 .HasForeignKey(s => s.PlayerId)
-                .OnDelete(DeleteBehavior.NoAction); // undgå multiple cascade paths
+                .OnDelete(DeleteBehavior.NoAction); 
 
             modelBuilder.Entity<Score>()
                 .HasOne(s => s.VictimPlayer)

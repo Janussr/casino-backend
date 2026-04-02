@@ -126,22 +126,6 @@ namespace PokerProject.Controllers
             }
         }
 
-        //[Authorize(Roles = "Admin, Gamemaster")]
-        //[HttpGet("game-panel/active")]
-        //public async Task<ActionResult<GamePanelDto>> GetActiveGameForGamePanel()
-        //{
-        //    try
-        //    {
-        //        int userId = User.GetUserId();
-        //        var games = await _gameService.GetActiveGameForGamePanelAsync(userId);
-        //        return Ok(games);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return StatusCode(500, new { message = ex.Message });
-        //    }
-        //}
-
         [Authorize(Roles = "Admin, Gamemaster")]
         [HttpGet("game-panel/active/all")]
         public async Task<ActionResult<List<GamePanelDto>>> GetAllActiveGamesForGamePanel()
@@ -225,7 +209,6 @@ namespace PokerProject.Controllers
             }
         }
 
-        //user joins game manually via lobby
         [Authorize]
         [HttpPost("{gameId}/join")]
         public async Task<IActionResult> JoinGameAsPlayer(int gameId)

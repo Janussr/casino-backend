@@ -15,14 +15,12 @@ namespace PokerProject.Services.Bounties
 
         public async Task<ScoreDto> PlayerKnockoutAsync(int gameId, int killerUserId, int? victimPlayerId)
         {
-            // Find killer's PlayerId i game
             var killer = await _context.Players
                 .FirstOrDefaultAsync(p => p.GameId == gameId && p.UserId == killerUserId);
 
             if (killer == null)
                 throw new InvalidOperationException("You are not a player in this game");
 
-            // Nu kalder vi eksisterende HandleKnockoutAsync med PlayerId'er
             return await HandleKnockoutAsync(gameId, killer.Id, victimPlayerId);
         }
 
@@ -43,7 +41,6 @@ namespace PokerProject.Services.Bounties
             if (currentRound == null)
                 throw new InvalidOperationException("No active round found");
 
-            // Find spillerne via PlayerId
             var killer = game.Players.FirstOrDefault(p => p.Id == killerPlayerId);
             var victim = game.Players.FirstOrDefault(p => p.Id == victimPlayerId);
 

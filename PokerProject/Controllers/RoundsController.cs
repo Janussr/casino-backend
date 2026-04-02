@@ -32,7 +32,6 @@ namespace PokerProject.Controllers
             }
             catch (Exception ex)
             {
-                // Generel fallback
                 return StatusCode(500, new { message = "Something went wrong", detail = ex.Message });
             }
         }

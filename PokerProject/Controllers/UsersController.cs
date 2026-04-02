@@ -96,7 +96,7 @@ public class UsersController : ControllerBase
         var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
         var authProperties = new AuthenticationProperties
         {
-            IsPersistent = true, // husk login mellem sessions TODO true or false?
+            IsPersistent = true, // remember login between sessions TODO true or false?
             ExpiresUtc = DateTimeOffset.UtcNow.AddDays(1)
         };
 
@@ -197,10 +197,8 @@ public class UsersController : ControllerBase
     {
         try
         {
-            // Hent userId fra JWT eller Claims
             var userId = User.GetUserId();
 
-            // Opdater username
             var updatedUser = await _userService.PlayerUpdateUsernameAsync(userId, dto.NewUsername);
 
             if (updatedUser == null)
