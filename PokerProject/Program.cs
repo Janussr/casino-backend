@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using PokerProject.Data;
 using PokerProject.Hubs;
 using PokerProject.Services.Bounties;
+using PokerProject.Services.Database;
 using PokerProject.Services.Games;
 using PokerProject.Services.HallOfFames;
 using PokerProject.Services.Players;
@@ -25,12 +26,12 @@ builder.Services.AddOpenApi();
 
 // DATABASE 
 //INCOMMENT FOR LOCAL DB
-//builder.Services.AddDbContext<PokerDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddDbContext<PokerDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 //INCOMMENT FOR PROD DB
 //Connection string for online database, loaded from env variable
-var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
-builder.Services.AddDbContext<PokerDbContext>(options => options.UseSqlServer(connectionString));
+//var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
+//builder.Services.AddDbContext<PokerDbContext>(options => options.UseSqlServer(connectionString));
 
 //Dependency Injection for services
 builder.Services.AddScoped<IUserService, UserService>();
@@ -41,6 +42,7 @@ builder.Services.AddScoped<IScoreService, ScoreService>();
 builder.Services.AddScoped<IPlayerService, PlayerService>();
 builder.Services.AddScoped<IBountyService, BountyService>();
 builder.Services.AddScoped<IRoundService, RoundService>();
+builder.Services.AddScoped<IDatabaseService, DatabaseService>();
 
 //CORS
 var corsOrigins = Environment.GetEnvironmentVariable("CORS_ORIGINS")?.Split(',', StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>();
