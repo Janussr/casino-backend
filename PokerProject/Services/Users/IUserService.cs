@@ -1,4 +1,5 @@
-﻿using PokerProject.DTOs;
+﻿using PokerProject.DTOs.Admin;
+using PokerProject.DTOs.Auth;
 using PokerProject.Models;
 
 namespace PokerProject.Services.Users

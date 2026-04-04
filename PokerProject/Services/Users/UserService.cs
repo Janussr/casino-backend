@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PokerProject.Data;
-using PokerProject.DTOs;
+using PokerProject.DTOs.Admin;
+using PokerProject.DTOs.Auth;
 using PokerProject.Models;
 using System.Data;
 

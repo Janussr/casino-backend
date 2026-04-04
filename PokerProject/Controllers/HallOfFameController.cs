@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using PokerProject.DTOs;
+using PokerProject.DTOs.HallOfFame;
 using PokerProject.Models;
 using PokerProject.Services.HallOfFames;
 

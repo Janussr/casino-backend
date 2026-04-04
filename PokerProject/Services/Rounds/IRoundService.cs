@@ -1,4 +1,4 @@
-﻿using PokerProject.DTOs;
+﻿using PokerProject.DTOs.Rounds;
 
 namespace PokerProject.Services.Rounds
 {

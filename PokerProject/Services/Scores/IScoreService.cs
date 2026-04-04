@@ -1,4 +1,5 @@
-﻿using PokerProject.DTOs;
+﻿using PokerProject.DTOs.Players;
+using PokerProject.DTOs.Scores;
 
 namespace PokerProject.Services.Scores
 {

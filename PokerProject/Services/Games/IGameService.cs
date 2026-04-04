@@ -1,4 +1,5 @@
-﻿using PokerProject.DTOs;
+﻿using PokerProject.DTOs.Games;
+using PokerProject.DTOs.Players;
 using System.Security.Claims;
 
 namespace PokerProject.Services.Games

@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using PokerProject.DTOs;
+using PokerProject.DTOs.Players;
 using PokerProject.Services.Players;
 
 namespace PokerProject.Controllers

@@ -1,4 +1,5 @@
-﻿using PokerProject.DTOs;
+﻿using PokerProject.DTOs.Bounties;
+using PokerProject.DTOs.Scores;
 
 namespace PokerProject.Services.Bounties
 {

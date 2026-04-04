@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PokerProject.Data;
-using PokerProject.DTOs;
+using PokerProject.DTOs.HallOfFame;
 
 namespace PokerProject.Services.HallOfFames
 {

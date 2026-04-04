@@ -25,12 +25,12 @@ builder.Services.AddOpenApi();
 
 // DATABASE 
 //INCOMMENT FOR LOCAL DB
-builder.Services.AddDbContext<PokerDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+//builder.Services.AddDbContext<PokerDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 //INCOMMENT FOR PROD DB
 //Connection string for online database, loaded from env variable
-//var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
-//builder.Services.AddDbContext<PokerDbContext>(options => options.UseSqlServer(connectionString));
+var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
+builder.Services.AddDbContext<PokerDbContext>(options => options.UseSqlServer(connectionString));
 
 //Dependency Injection for services
 builder.Services.AddScoped<IUserService, UserService>();

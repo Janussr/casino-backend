@@ -1,4 +1,4 @@
-﻿using PokerProject.DTOs;
+﻿using PokerProject.DTOs.Players;
 
 namespace PokerProject.Services.Players
 {

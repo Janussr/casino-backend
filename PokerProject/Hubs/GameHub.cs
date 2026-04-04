@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
-using PokerProject.DTOs;
+using PokerProject.DTOs.Rounds;
 
 namespace PokerProject.Hubs;
 

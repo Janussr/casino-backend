@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PokerProject.Data;
-using PokerProject.DTOs;
+using PokerProject.DTOs.Players;
 using PokerProject.Models;
 
 namespace PokerProject.Services.Players

@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using PokerProject.DTOs;
+using PokerProject.DTOs.Bounties;
 using PokerProject.Services.Bounties;
 using PokerProject.Services.Games;
 

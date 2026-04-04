@@ -2,7 +2,9 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using PokerProject.DTOs;
+using PokerProject.DTOs.Admin;
+using PokerProject.DTOs.Auth;
+using PokerProject.DTOs.Games;
 using PokerProject.Services.Users;
 using System.Security.Claims;
 

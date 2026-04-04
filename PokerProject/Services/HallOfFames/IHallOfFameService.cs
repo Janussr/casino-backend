@@ -1,4 +1,4 @@
-﻿using PokerProject.DTOs;
+﻿using PokerProject.DTOs.HallOfFame;
 
 namespace PokerProject.Services.HallOfFames
 {

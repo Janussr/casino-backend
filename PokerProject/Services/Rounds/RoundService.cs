@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using PokerProject.Data;
-using PokerProject.DTOs;
+using PokerProject.DTOs.Rounds;
+using PokerProject.DTOs.Scores;
 using PokerProject.Hubs;
 using PokerProject.Models;
 
