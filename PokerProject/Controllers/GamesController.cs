@@ -249,36 +249,36 @@ namespace PokerProject.Controllers
             }
         }
 
-        [Authorize]
-        [HttpPost("{gameId}/leave")]
-        public async Task<IActionResult> LeaveGame(int gameId, [FromBody] GameActionDto? dto = null)
-        {
-            try
-            {
-                var currentUserId = User.GetUserId();
-                var role = User.GetUserRole();
+        //[Authorize]
+        //[HttpPost("{gameId}/leave")]
+        //public async Task<IActionResult> LeaveGame(int gameId, [FromBody] GameActionDto? dto = null)
+        //{
+        //    try
+        //    {
+        //        var currentUserId = User.GetUserId();
+        //        var role = User.GetUserRole();
 
-                var userIdToLeave = (role == "Admin" || role == "Gamemaster") && dto != null
-                    ? dto.TargetUserId
-                    : currentUserId;
+        //        var userIdToLeave = (role == "Admin" || role == "Gamemaster") && dto != null
+        //            ? dto.TargetUserId
+        //            : currentUserId;
 
-                await _gameService.LeaveGameAsync(gameId, userIdToLeave);
+        //        await _gameService.LeaveGameAsync(gameId, userIdToLeave);
 
-                return Ok(new { message = "Player left the game", GameId = gameId, UserId = userIdToLeave });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (Exception)
-            {
-                return StatusCode(500, "Unexpected error");
-            }
-        }
+        //        return Ok(new { message = "Player left the game", GameId = gameId, UserId = userIdToLeave });
+        //    }
+        //    catch (KeyNotFoundException ex)
+        //    {
+        //        return NotFound(new { message = ex.Message });
+        //    }
+        //    catch (InvalidOperationException ex)
+        //    {
+        //        return BadRequest(new { message = ex.Message });
+        //    }
+        //    catch (Exception)
+        //    {
+        //        return StatusCode(500, "Unexpected error");
+        //    }
+        //}
 
 
         [HttpGet("lobby")]

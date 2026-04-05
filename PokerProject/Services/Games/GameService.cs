@@ -7,6 +7,7 @@ using PokerProject.DTOs.Players;
 using PokerProject.DTOs.Rounds;
 using PokerProject.DTOs.Scores;
 using PokerProject.Hubs;
+using PokerProject.Hubs.GameNotifier;
 using PokerProject.Models;
 using System.Security.Claims;
 
@@ -16,11 +17,13 @@ namespace PokerProject.Services.Games
     {
         private readonly PokerDbContext _context;
         private readonly IHubContext<GameHub> _hubContext;
+        private readonly IGameNotifier _gameNotifier;
 
-        public GameService(PokerDbContext context, IHubContext<GameHub> hubContext)
+        public GameService(PokerDbContext context, IHubContext<GameHub> hubContext, IGameNotifier gameNotifier)
         {
             _context = context;
             _hubContext = hubContext;
+            _gameNotifier = gameNotifier;
         }
 
         public async Task<GameDto> StartGameAsync(ClaimsPrincipal currentUser, StartGameRequestDto request)
@@ -92,8 +95,9 @@ namespace PokerProject.Services.Games
         public async Task<PlayerDto> JoinGameAsPlayerAsync(int gameId, int userId)
         {
             var game = await _context.Games
-                .Include(g => g.Players)
-                .FirstOrDefaultAsync(g => g.Id == gameId);
+             .Include(g => g.Players)
+                 .ThenInclude(p => p.User)
+             .FirstOrDefaultAsync(g => g.Id == gameId);
 
             if (game == null)
                 throw new KeyNotFoundException("Game not found");
@@ -111,13 +115,22 @@ namespace PokerProject.Services.Games
                     existing.LeftAt = null;
                     await _context.SaveChangesAsync();
                 }
+                var rejoinTargets = game.Players
+                .Where(p => p.IsActive)
+                .Select(p => new KnockoutTargetDto
+                {
+                    PlayerId = p.Id,
+                    Username = p.User?.Username ?? "Unknown",
+                    ActiveBounties = p.ActiveBounties
+                })
+                .ToList();
 
-                var existingUser = await _context.Users.FindAsync(userId);
+                await _gameNotifier.KnockoutTargetsUpdated(game.Id, rejoinTargets);
 
                 return new PlayerDto
                 {
                     UserId = existing.UserId,
-                    Username = existingUser?.Username ?? "Unknown",
+                    Username = existing.User?.Username ?? "Unknown",
                     IsActive = existing.IsActive,
                     RebuyCount = existing.RebuyCount,
                     ActiveBounties = existing.ActiveBounties
@@ -139,6 +152,19 @@ namespace PokerProject.Services.Games
 
             game.Players.Add(newPlayer);
             await _context.SaveChangesAsync();
+
+
+            var knockoutTargets = game.Players
+                .Where(p => p.IsActive)
+                .Select(p => new KnockoutTargetDto
+                {
+                    PlayerId = p.Id,
+                    Username = p.User.Username,
+                    ActiveBounties = p.ActiveBounties
+                })
+                .ToList();
+
+            await _gameNotifier.KnockoutTargetsUpdated(game.Id, knockoutTargets);
 
             return new PlayerDto
             {
@@ -771,13 +797,20 @@ namespace PokerProject.Services.Games
             await _context.SaveChangesAsync();
         }
 
-       
+
 
 
         public async Task LeaveGameAsync(int gameId, int userId)
         {
-            var player = await _context.Players
-                .FirstOrDefaultAsync(p => p.GameId == gameId && p.UserId == userId);
+            var game = await _context.Games
+                .Include(g => g.Players)
+                    .ThenInclude(p => p.User)
+                .FirstOrDefaultAsync(g => g.Id == gameId);
+
+            if (game == null)
+                throw new KeyNotFoundException("Game not found");
+
+            var player = game.Players.FirstOrDefault(p => p.UserId == userId);
 
             if (player == null)
                 throw new KeyNotFoundException("Player not found");
@@ -789,6 +822,18 @@ namespace PokerProject.Services.Games
             player.LeftAt = DateTimeOffset.UtcNow;
 
             await _context.SaveChangesAsync();
+
+            var knockoutTargets = game.Players
+                .Where(p => p.IsActive)
+                .Select(p => new KnockoutTargetDto
+                {
+                    PlayerId = p.Id,
+                    Username = p.User?.Username ?? "Unknown",
+                    ActiveBounties = p.ActiveBounties
+                })
+                .ToList();
+
+            await _gameNotifier.KnockoutTargetsUpdated(game.Id, knockoutTargets);
         }
 
 

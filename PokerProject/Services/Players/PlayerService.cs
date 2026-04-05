@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PokerProject.Data;
+using PokerProject.DTOs.Bounties;
 using PokerProject.DTOs.Players;
+using PokerProject.Hubs.GameNotifier;
 using PokerProject.Models;
 
 namespace PokerProject.Services.Players
@@ -8,16 +10,22 @@ namespace PokerProject.Services.Players
     public class PlayerService : IPlayerService
     {
         private readonly PokerDbContext _context;
+        private readonly IGameNotifier _gameNotifier;
 
-        public PlayerService(PokerDbContext context)
+        public PlayerService(PokerDbContext context, IGameNotifier gameNotifier)
         {
             _context = context;
+            _gameNotifier = gameNotifier;
         }
 
 
         public async Task<List<PlayerDto>> AddPlayersToGameAsAdminAsync(int gameId, List<int> userIds)
         {
-            var game = await _context.Games.FindAsync(gameId);
+            var game = await _context.Games
+                .Include(g => g.Players)
+                    .ThenInclude(p => p.User)
+                .FirstOrDefaultAsync(g => g.Id == gameId);
+
             if (game == null)
                 throw new KeyNotFoundException("Game not found");
 
@@ -25,49 +33,61 @@ namespace PokerProject.Services.Players
 
             foreach (var userId in userIds)
             {
-                var existingPlayer = await _context.Players
-                    .FirstOrDefaultAsync(p => p.GameId == gameId && p.UserId == userId);
+                var existingPlayer = game.Players.FirstOrDefault(p => p.UserId == userId);
 
                 if (existingPlayer != null)
                 {
                     if (!existingPlayer.IsActive)
                     {
                         existingPlayer.IsActive = true;
+                        existingPlayer.LeftAt = null;
                         players.Add(existingPlayer);
                     }
 
                     continue;
                 }
 
+                var user = await _context.Users.FindAsync(userId);
+                if (user == null)
+                    continue;
+
                 var player = new Player
                 {
                     GameId = gameId,
                     UserId = userId,
                     IsActive = true,
+                    RebuyCount = 0,
+                    ActiveBounties = 0,
+                    User = user
                 };
 
-                _context.Players.Add(player);
+                game.Players.Add(player);
                 players.Add(player);
             }
 
             await _context.SaveChangesAsync();
 
-            var result = new List<PlayerDto>();
-
-            foreach (var player in players)
+            var result = players.Select(player => new PlayerDto
             {
-                var user = await _context.Users.FindAsync(player.UserId);
+                PlayerId = player.Id,
+                UserId = player.UserId,
+                Username = player.User?.Username ?? "Unknown",
+                RebuyCount = player.RebuyCount,
+                ActiveBounties = player.ActiveBounties,
+                IsActive = player.IsActive
+            }).ToList();
 
-                result.Add(new PlayerDto
+            var knockoutTargets = game.Players
+                .Where(p => p.IsActive)
+                .Select(p => new KnockoutTargetDto
                 {
-                    PlayerId = player.Id,
-                    UserId = player.UserId,
-                    Username = user?.Username ?? "Unknown",
-                    RebuyCount = 0,
-                    ActiveBounties = 0,
-                    IsActive = true
-                });
-            }
+                    PlayerId = p.Id,
+                    Username = p.User?.Username ?? "Unknown",
+                    ActiveBounties = p.ActiveBounties
+                })
+                .ToList();
+
+            await _gameNotifier.KnockoutTargetsUpdated(game.Id, knockoutTargets);
 
             return result;
         }
@@ -96,13 +116,18 @@ namespace PokerProject.Services.Players
 
         public async Task LeaveGameAsPlayerAsync(int gameId, int userId)
         {
-            var game = await _context.Games.FindAsync(gameId);
+            var game = await _context.Games
+                .Include(g => g.Players)
+                    .ThenInclude(p => p.User)
+                .FirstOrDefaultAsync(g => g.Id == gameId);
+
+            if (game == null)
+                throw new KeyNotFoundException("Game not found");
 
             if (game.IsFinished)
                 throw new Exception("Game already finished");
 
-            var player = await _context.Players
-                .FirstOrDefaultAsync(p => p.GameId == gameId && p.UserId == userId);
+            var player = game.Players.FirstOrDefault(p => p.UserId == userId);
 
             if (player == null)
                 throw new Exception("Player not found");
@@ -114,12 +139,31 @@ namespace PokerProject.Services.Players
             player.LeftAt = DateTimeOffset.UtcNow;
 
             await _context.SaveChangesAsync();
+
+            var knockoutTargets = game.Players
+                .Where(p => p.IsActive)
+                .Select(p => new KnockoutTargetDto
+                {
+                    PlayerId = p.Id,
+                    Username = p.User?.Username ?? "Unknown",
+                    ActiveBounties = p.ActiveBounties
+                })
+                .ToList();
+
+            await _gameNotifier.KnockoutTargetsUpdated(game.Id, knockoutTargets);
         }
 
         public async Task RemovePlayerAsAdminAsync(int gameId, int playerId)
         {
-            var player = await _context.Players
-        .FirstOrDefaultAsync(p => p.GameId == gameId && p.Id == playerId);
+            var game = await _context.Games
+                .Include(g => g.Players)
+                    .ThenInclude(p => p.User)
+                .FirstOrDefaultAsync(g => g.Id == gameId);
+
+            if (game == null)
+                throw new KeyNotFoundException("Game not found");
+
+            var player = game.Players.FirstOrDefault(p => p.Id == playerId);
 
             if (player == null)
                 throw new Exception("Player not found");
@@ -132,6 +176,17 @@ namespace PokerProject.Services.Players
 
             await _context.SaveChangesAsync();
 
+            var knockoutTargets = game.Players
+                .Where(p => p.IsActive)
+                .Select(p => new KnockoutTargetDto
+                {
+                    PlayerId = p.Id,
+                    Username = p.User?.Username ?? "Unknown",
+                    ActiveBounties = p.ActiveBounties
+                })
+                .ToList();
+
+            await _gameNotifier.KnockoutTargetsUpdated(game.Id, knockoutTargets);
         }
 
 

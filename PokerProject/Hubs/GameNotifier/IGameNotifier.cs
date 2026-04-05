@@ -1,4 +1,5 @@
-﻿using PokerProject.DTOs.Rounds;
+﻿using PokerProject.DTOs.Bounties;
+using PokerProject.DTOs.Rounds;
 
 namespace PokerProject.Hubs.GameNotifier
 {
@@ -7,5 +8,6 @@ namespace PokerProject.Hubs.GameNotifier
         Task GameUpdated(int gameId, object updatedGameDto);
         Task KnockoutUpdated(int gameId, object payload);
         Task StartNewRound(int gameId, RoundDto newDto);
+        Task KnockoutTargetsUpdated( int gameId,IEnumerable<KnockoutTargetDto> knockoutTargets);
     }
 }

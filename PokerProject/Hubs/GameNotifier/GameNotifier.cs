@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.SignalR;
+using PokerProject.DTOs.Bounties;
 using PokerProject.DTOs.Rounds;
 
 namespace PokerProject.Hubs.GameNotifier
@@ -24,6 +25,16 @@ namespace PokerProject.Hubs.GameNotifier
         public Task StartNewRound(int gameId, RoundDto newDto)
             => _hubContext.Clients.Group($"Game-{gameId}")
                 .SendAsync("RoundStarted", newDto);
+
+        public Task KnockoutTargetsUpdated(
+            int gameId,
+            IEnumerable<KnockoutTargetDto> knockoutTargets)
+            => _hubContext.Clients.Group($"Game-{gameId}")
+                .SendAsync("KnockoutTargetsUpdated", new KnockoutTargetsUpdatedDto
+                {
+                    GameId = gameId,
+                    KnockoutTargets = knockoutTargets.ToList()
+                });
 
 
     }
