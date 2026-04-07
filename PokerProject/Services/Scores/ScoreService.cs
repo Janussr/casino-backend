@@ -73,8 +73,10 @@ namespace PokerProject.Services.Scores
 
             return new ScoreDto
             {
+                Id = score.Id,
                 PlayerId = targetPlayer.Id,
                 UserId = targetPlayer.UserId,
+                UserName = targetPlayer.User.Username,
                 Points = score.Value,
                 Type = score.Type,
                 Rounds = new RoundDto
@@ -108,6 +110,7 @@ namespace PokerProject.Services.Scores
             {
                 var playerIds = dto.Scores.Select(s => s.PlayerId).ToList();
                 var players = await _context.Players
+                    .Include(p => p.User)  
                     .Where(p => p.GameId == game.Id && playerIds.Contains(p.Id))
                     .ToListAsync();
 
@@ -144,6 +147,7 @@ namespace PokerProject.Services.Scores
                     {
                         Id = s.Id,
                         PlayerId = player.Id, 
+                        UserName = player.User.Username,
                         Points = s.Value,
                         Type = s.Type,
                         Rounds = new RoundDto

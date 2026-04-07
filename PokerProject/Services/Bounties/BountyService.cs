@@ -34,6 +34,7 @@ namespace PokerProject.Services.Bounties
             var game = await _context.Games
                 .Include(g => g.Rounds)
                 .Include(g => g.Players)
+                    .ThenInclude(p => p.User)
                 .FirstOrDefaultAsync(g => g.Id == gameId);
 
             if (game == null)
@@ -99,8 +100,11 @@ namespace PokerProject.Services.Bounties
 
             return new ScoreDto
             {
+                Id = score.Id,
                 PlayerId = killer.Id,
                 UserId = killer.UserId,
+                UserName = killer.User.Username,
+                GameId = gameId,
                 Points = score.Value,
                 Type = score.Type,
                 Rounds = new RoundDto
