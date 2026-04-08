@@ -67,6 +67,18 @@ namespace PokerProject.Services.Players
 
             await _context.SaveChangesAsync();
 
+            var playerIds = players.Select(p => p.Id).ToList();
+
+            var totalsByPlayerId = await _context.Scores
+                .Where(s => playerIds.Contains(s.PlayerId))
+                .GroupBy(s => s.PlayerId)
+                .Select(g => new
+                {
+                    PlayerId = g.Key,
+                    TotalPoints = g.Sum(x => x.Value)
+                })
+                .ToDictionaryAsync(x => x.PlayerId, x => x.TotalPoints);
+
             var result = players.Select(player => new PlayerDto
             {
                 PlayerId = player.Id,
@@ -74,6 +86,7 @@ namespace PokerProject.Services.Players
                 Username = player.User?.Username ?? "Unknown",
                 RebuyCount = player.RebuyCount,
                 ActiveBounties = player.ActiveBounties,
+                TotalPoints = totalsByPlayerId.TryGetValue(player.Id, out var total) ? total : 0,
                 IsActive = player.IsActive
             }).ToList();
 
