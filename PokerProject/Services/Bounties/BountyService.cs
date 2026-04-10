@@ -86,6 +86,7 @@ namespace PokerProject.Services.Bounties
                     Id = score.Id,
                     PlayerId = killer.Id,
                     UserId = killer.UserId,
+                    UserName = killer.User.Username,
                     Points = score.Value,
                     Type = score.Type,
                     Rounds = new RoundDto

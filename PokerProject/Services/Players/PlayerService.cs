@@ -189,6 +189,13 @@ namespace PokerProject.Services.Players
 
             await _context.SaveChangesAsync();
 
+            await _gameNotifier.PlayerRemoved(gameId, new PlayerRemovedDto
+            {
+                GameId = gameId,
+                RemovedPlayerId = player.Id,
+                RemovedUserId = player.UserId
+            });
+
             var knockoutTargets = game.Players
                 .Where(p => p.IsActive)
                 .Select(p => new KnockoutTargetDto

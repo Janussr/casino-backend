@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using PokerProject.DTOs.Bounties;
+using PokerProject.DTOs.Players;
 using PokerProject.DTOs.Rounds;
 
 namespace PokerProject.Hubs.GameNotifier
@@ -35,6 +36,10 @@ namespace PokerProject.Hubs.GameNotifier
                     GameId = gameId,
                     KnockoutTargets = knockoutTargets.ToList()
                 });
+
+        public Task PlayerRemoved(int gameId, PlayerRemovedDto payload)
+             => _hubContext.Clients.Group($"Game-{gameId}")
+                .SendAsync("PlayerRemoved", payload);
 
 
     }
