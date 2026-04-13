@@ -1,144 +1,128 @@
-﻿//using FluentAssertions;
-//using Microsoft.EntityFrameworkCore;
-//using Moq;
-//using PokerProject.Data;
-//using PokerProject.Hubs;
-//using PokerProject.Models;
-//using PokerProject.Services.Games;
-//using System.Security.Claims;
-//using Microsoft.AspNetCore.SignalR;
+﻿using FluentAssertions;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
+using Moq;
+using PokerProject.Data;
+using PokerProject.Hubs;
+using PokerProject.Hubs.GameNotifier;
+using PokerProject.Models;
+using PokerProject.Services.Games;
+using PokerProject.Services.Scores;
 
-//namespace PokerProject.Tests.Services
-//{
-//    public class GameServiceTests
-//    {
-//        private PokerDbContext GetDbContext()
-//        {
-//            var options = new DbContextOptionsBuilder<PokerDbContext>()
-//                .UseInMemoryDatabase(Guid.NewGuid().ToString())
-//                .Options;
+namespace PokerProject.Tests.Services
+{
+    public class GameServiceTests
+    {
+        private PokerDbContext GetDbContext()
+        {
+            var options = new DbContextOptionsBuilder<PokerDbContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
 
-//            return new PokerDbContext(options);
-//        }
+            return new PokerDbContext(options);
+        }
 
-//        private GameService CreateService(PokerDbContext context)
-//        {
-//            var hubMock = new Mock<IHubContext<GameHub>>();
-//            return new GameService(context, hubMock.Object);
-//        }
+        private GameService CreateService(PokerDbContext context)
+        {
+            var hubMock = new Mock<IHubContext<GameHub>>();
+            var gameNotifierMock = new Mock<IGameNotifier>();
 
-//        private ClaimsPrincipal CreateUser(int userId)
-//        {
-//            return new ClaimsPrincipal(new ClaimsIdentity(new[]
-//            {
-//                new Claim(ClaimTypes.NameIdentifier, userId.ToString())
-//            }));
-//        }
+            return new GameService(context, hubMock.Object, gameNotifierMock.Object);
+        }
 
-    
+        [Fact]
+        public async Task JoinGameAsPlayerAsync_ShouldThrow_WhenGameNotFound()
+        {
+            var context = GetDbContext();
+            var service = CreateService(context);
 
+            Func<Task> act = async () =>
+                await service.JoinGameAsPlayerAsync(999, 1);
 
-//        [Fact]
-//        public async Task JoinGameAsPlayerAsync_ShouldThrow_WhenGameNotFound()
-//        {
-//            var context = GetDbContext();
-//            var service = CreateService(context);
+            await act.Should().ThrowAsync<KeyNotFoundException>();
+        }
 
-//            Func<Task> act = async () =>
-//                await service.JoinGameAsPlayerAsync(999, 1);
+        [Fact]
+        public async Task CancelGameAsync_ShouldDeleteGame_WhenNoScores()
+        {
+            var context = GetDbContext();
+            var service = CreateService(context);
 
-//            await act.Should().ThrowAsync<KeyNotFoundException>();
-//        }
+            var game = new Game
+            {
+                GameNumber = 1,
+                StartedAt = DateTimeOffset.UtcNow
+            };
 
-//        // -------------------------------
-//        // CancelGameAsync
-//        // -------------------------------
+            context.Games.Add(game);
+            await context.SaveChangesAsync();
 
-//        [Fact]
-//        public async Task CancelGameAsync_ShouldDeleteGame_WhenNoScores()
-//        {
-//            var context = GetDbContext();
-//            var service = CreateService(context);
+            var result = await service.CancelGameAsync(game.Id);
 
-//            var game = new Game
-//            {
-//                GameNumber = 1,
-//                StartedAt = DateTimeOffset.UtcNow
-//            };
+            result.IsFinished.Should().BeTrue();
 
-//            context.Games.Add(game);
-//            await context.SaveChangesAsync();
+            var exists = await context.Games.AnyAsync();
+            exists.Should().BeFalse();
+        }
 
-//            var result = await service.CancelGameAsync(game.Id);
+        [Fact]
+        public async Task CancelGameAsync_ShouldThrow_WhenGameHasScores()
+        {
+            var context = GetDbContext();
+            var service = CreateService(context);
 
-//            result.IsFinished.Should().BeTrue();
+            var game = new Game
+            {
+                GameNumber = 1,
+                StartedAt = DateTimeOffset.UtcNow
+            };
 
-//            var exists = await context.Games.AnyAsync();
-//            exists.Should().BeFalse();
-//        }
+            context.Games.Add(game);
+            await context.SaveChangesAsync();
 
-//        [Fact]
-//        public async Task CancelGameAsync_ShouldThrow_WhenGameHasScores()
-//        {
-//            var context = GetDbContext();
-//            var service = CreateService(context);
+            var round = new Round
+            {
+                GameId = game.Id,
+                RoundNumber = 1
+            };
 
-//            var game = new Game
-//            {
-//                GameNumber = 1,
-//                StartedAt = DateTimeOffset.UtcNow
-//            };
+            context.Rounds.Add(round);
+            await context.SaveChangesAsync();
 
-//            context.Games.Add(game);
-//            await context.SaveChangesAsync();
+            context.Scores.Add(new Score
+            {
+                RoundId = round.Id,
+                PlayerId = 1,
+                Value = 100
+            });
 
-//            var round = new Round
-//            {
-//                GameId = game.Id,
-//                RoundNumber = 1
-//            };
+            await context.SaveChangesAsync();
 
-//            context.Rounds.Add(round);
-//            await context.SaveChangesAsync();
+            Func<Task> act = async () =>
+                await service.CancelGameAsync(game.Id);
 
-//            context.Scores.Add(new Score
-//            {
-//                RoundId = round.Id,
-//                PlayerId = 1,
-//                Value = 100
-//            });
+            await act.Should().ThrowAsync<InvalidOperationException>();
+        }
 
-//            await context.SaveChangesAsync();
+        [Fact]
+        public async Task GetGameByIdAsync_ShouldReturnGame()
+        {
+            var context = GetDbContext();
+            var service = CreateService(context);
 
-//            Func<Task> act = async () =>
-//                await service.CancelGameAsync(game.Id);
+            var game = new Game
+            {
+                GameNumber = 1,
+                StartedAt = DateTimeOffset.UtcNow
+            };
 
-//            await act.Should().ThrowAsync<InvalidOperationException>();
-//        }
+            context.Games.Add(game);
+            await context.SaveChangesAsync();
 
-//        // -------------------------------
-//        // GetGameByIdAsync
-//        // -------------------------------
+            var result = await service.GetGameByIdAsync(game.Id);
 
-//        [Fact]
-//        public async Task GetGameByIdAsync_ShouldReturnGame()
-//        {
-//            var context = GetDbContext();
-//            var service = CreateService(context);
-
-//            var game = new Game
-//            {
-//                GameNumber = 1,
-//                StartedAt = DateTimeOffset.UtcNow
-//            };
-
-//            context.Games.Add(game);
-//            await context.SaveChangesAsync();
-
-//            var result = await service.GetGameByIdAsync(game.Id);
-
-//            result.Should().NotBeNull();
-//            result!.GameNumber.Should().Be(1);
-//        }
-//    }
-//}
+            result.Should().NotBeNull();
+            result!.GameNumber.Should().Be(1);
+        }
+    }
+}

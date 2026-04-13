@@ -1,164 +1,173 @@
-﻿//using FluentAssertions;
-//using Microsoft.EntityFrameworkCore;
-//using PokerProject.Data;
-//using PokerProject.Models;
-//using PokerProject.Services.Players;
+﻿using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
+using Moq;
+using PokerProject.Data;
+using PokerProject.Hubs.GameNotifier;
+using PokerProject.Models;
+using PokerProject.Services.Players;
 
-//namespace PokerProject.Tests.Services
-//{
-//    public class PlayerServiceTests
-//    {
-//        private PokerDbContext GetDbContext()
-//        {
-//            var options = new DbContextOptionsBuilder<PokerDbContext>()
-//                .UseInMemoryDatabase(Guid.NewGuid().ToString())
-//                .Options;
+namespace PokerProject.Tests.Services
+{
+    public class PlayerServiceTests
+    {
+        private PokerDbContext GetDbContext()
+        {
+            var options = new DbContextOptionsBuilder<PokerDbContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
 
-//            return new PokerDbContext(options);
-//        }
+            return new PokerDbContext(options);
+        }
 
-//        private PlayerService CreateService(PokerDbContext context)
-//        {
-//            return new PlayerService(context);
-//        }
+        private PlayerService CreateService(PokerDbContext context)
+        {
+            var gameNotifierMock = new Mock<IGameNotifier>();
+            return new PlayerService(context, gameNotifierMock.Object);
+        }
 
+        [Fact]
+        public async Task IsUserAPlayerAsync_ShouldReturnTrue_WhenPlayerExists()
+        {
+            var context = GetDbContext();
+            var service = CreateService(context);
 
-//        // -------------------------------
-//        // IsUserAPlayerAsync
-//        // -------------------------------
+            var game = new Game { GameNumber = 1 };
+            context.Games.Add(game);
+            await context.SaveChangesAsync();
 
-//        [Fact]
-//        public async Task IsUserAPlayerAsync_ShouldReturnTrue_WhenPlayerExists()
-//        {
-//            var context = GetDbContext();
-//            var service = CreateService(context);
+            context.Players.Add(new Player
+            {
+                GameId = game.Id,
+                UserId = 1
+            });
 
-//            var game = new Game { GameNumber = 1 };
-//            context.Games.Add(game);
+            await context.SaveChangesAsync();
 
-//            context.Players.Add(new Player
-//            {
-//                GameId = game.Id,
-//                UserId = 1
-//            });
+            var result = await service.IsUserAPlayerAsync(game.Id, 1);
 
-//            await context.SaveChangesAsync();
+            result.Should().BeTrue();
+        }
 
-//            var result = await service.IsUserAPlayerAsync(game.Id, 1);
+        [Fact]
+        public async Task IsUserAPlayerAsync_ShouldReturnFalse_WhenPlayerDoesNotExist()
+        {
+            var context = GetDbContext();
+            var service = CreateService(context);
 
-//            result.Should().BeTrue();
-//        }
+            var game = new Game { GameNumber = 1 };
+            context.Games.Add(game);
+            await context.SaveChangesAsync();
 
-//        [Fact]
-//        public async Task IsUserAPlayerAsync_ShouldReturnFalse_WhenPlayerDoesNotExist()
-//        {
-//            var context = GetDbContext();
-//            var service = CreateService(context);
+            var result = await service.IsUserAPlayerAsync(game.Id, 999);
 
-//            var game = new Game { GameNumber = 1 };
-//            context.Games.Add(game);
-//            await context.SaveChangesAsync();
+            result.Should().BeFalse();
+        }
 
-//            var result = await service.IsUserAPlayerAsync(game.Id, 999);
+        [Fact]
+        public async Task LeaveGameAsPlayerAsync_ShouldSetPlayerInactive()
+        {
+            var context = GetDbContext();
+            var service = CreateService(context);
 
-//            result.Should().BeFalse();
-//        }
+            var user = new User
+            {
+                Username = "testuser",
+                PasswordHash = "hash"
+            };
+            context.Users.Add(user);
+            await context.SaveChangesAsync();
 
-//        // -------------------------------
-//        // LeaveGameAsPlayerAsync
-//        // -------------------------------
+            var game = new Game { GameNumber = 1 };
+            context.Games.Add(game);
+            await context.SaveChangesAsync();
 
-//        [Fact]
-//        public async Task LeaveGameAsPlayerAsync_ShouldSetPlayerInactive()
-//        {
-//            var context = GetDbContext();
-//            var service = CreateService(context);
+            var player = new Player
+            {
+                GameId = game.Id,
+                UserId = user.Id,
+                IsActive = true
+            };
+            context.Players.Add(player);
 
-//            var game = new Game { GameNumber = 1 };
-//            context.Games.Add(game);
+            await context.SaveChangesAsync();
 
-//            var player = new Player
-//            {
-//                GameId = game.Id,
-//                UserId = 1,
-//                IsActive = true
-//            };
-//            context.Players.Add(player);
+            await service.LeaveGameAsPlayerAsync(game.Id, user.Id);
 
-//            await context.SaveChangesAsync();
+            var updatedPlayer = await context.Players.FirstAsync();
+            updatedPlayer.IsActive.Should().BeFalse();
+            updatedPlayer.LeftAt.Should().NotBeNull();
+        }
 
-//            await service.LeaveGameAsPlayerAsync(game.Id, 1);
+        [Fact]
+        public async Task LeaveGameAsPlayerAsync_ShouldThrow_WhenGameFinished()
+        {
+            var context = GetDbContext();
+            var service = CreateService(context);
 
-//            var updatedPlayer = await context.Players.FirstAsync();
-//            updatedPlayer.IsActive.Should().BeFalse();
-//            updatedPlayer.LeftAt.Should().NotBeNull();
-//        }
+            var game = new Game
+            {
+                GameNumber = 1,
+                IsFinished = true
+            };
+            context.Games.Add(game);
 
-//        [Fact]
-//        public async Task LeaveGameAsPlayerAsync_ShouldThrow_WhenGameFinished()
-//        {
-//            var context = GetDbContext();
-//            var service = CreateService(context);
+            await context.SaveChangesAsync();
 
-//            var game = new Game
-//            {
-//                GameNumber = 1,
-//                IsFinished = true
-//            };
-//            context.Games.Add(game);
+            Func<Task> act = async () =>
+                await service.LeaveGameAsPlayerAsync(game.Id, 1);
 
-//            await context.SaveChangesAsync();
+            await act.Should().ThrowAsync<Exception>();
+        }
 
-//            Func<Task> act = async () =>
-//                await service.LeaveGameAsPlayerAsync(game.Id, 1);
+        [Fact]
+        public async Task RemovePlayerAsAdminAsync_ShouldDeactivatePlayer()
+        {
+            var context = GetDbContext();
+            var service = CreateService(context);
 
-//            await act.Should().ThrowAsync<Exception>();
-//        }
+            var user = new User
+            {
+                Username = "testuser",
+                PasswordHash = "hash"
+            };
+            context.Users.Add(user);
+            await context.SaveChangesAsync();
 
-//        // -------------------------------
-//        // RemovePlayerAsAdminAsync
-//        // -------------------------------
+            var game = new Game { GameNumber = 1 };
+            context.Games.Add(game);
+            await context.SaveChangesAsync();
 
-//        [Fact]
-//        public async Task RemovePlayerAsAdminAsync_ShouldDeactivatePlayer()
-//        {
-//            var context = GetDbContext();
-//            var service = CreateService(context);
+            var player = new Player
+            {
+                GameId = game.Id,
+                UserId = user.Id,
+                IsActive = true
+            };
+            context.Players.Add(player);
 
-//            var game = new Game { GameNumber = 1 };
-//            context.Games.Add(game);
+            await context.SaveChangesAsync();
 
-//            var player = new Player
-//            {
-//                GameId = game.Id,
-//                UserId = 1,
-//                IsActive = true
-//            };
-//            context.Players.Add(player);
+            await service.RemovePlayerAsAdminAsync(game.Id, player.Id);
 
-//            await context.SaveChangesAsync();
+            var updatedPlayer = await context.Players.FirstAsync();
+            updatedPlayer.IsActive.Should().BeFalse();
+            updatedPlayer.LeftAt.Should().NotBeNull();
+        }
 
-//            await service.RemovePlayerAsAdminAsync(game.Id, player.Id);
+        [Fact]
+        public async Task RemovePlayerAsAdminAsync_ShouldThrow_WhenPlayerNotFound()
+        {
+            var context = GetDbContext();
+            var service = CreateService(context);
 
-//            var updatedPlayer = await context.Players.FirstAsync();
-//            updatedPlayer.IsActive.Should().BeFalse();
-//            updatedPlayer.LeftAt.Should().NotBeNull();
-//        }
+            var game = new Game { GameNumber = 1 };
+            context.Games.Add(game);
+            await context.SaveChangesAsync();
 
-//        [Fact]
-//        public async Task RemovePlayerAsAdminAsync_ShouldThrow_WhenPlayerNotFound()
-//        {
-//            var context = GetDbContext();
-//            var service = CreateService(context);
+            Func<Task> act = async () =>
+                await service.RemovePlayerAsAdminAsync(game.Id, 999);
 
-//            var game = new Game { GameNumber = 1 };
-//            context.Games.Add(game);
-//            await context.SaveChangesAsync();
-
-//            Func<Task> act = async () =>
-//                await service.RemovePlayerAsAdminAsync(game.Id, 999);
-
-//            await act.Should().ThrowAsync<Exception>();
-//        }
-//    }
-//}
+            await act.Should().ThrowAsync<Exception>();
+        }
+    }
+}

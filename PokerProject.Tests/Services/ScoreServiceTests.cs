@@ -1,6 +1,8 @@
 ﻿using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using Moq;
 using PokerProject.Data;
+using PokerProject.Hubs.GameNotifier;
 using PokerProject.Models;
 using PokerProject.Services.Scores;
 
@@ -19,12 +21,9 @@ namespace PokerProject.Tests.Services
 
         private ScoreService CreateService(PokerDbContext context)
         {
-            return new ScoreService(context);
+            var gameNotifierMock = new Mock<IGameNotifier>();
+            return new ScoreService(context, gameNotifierMock.Object);
         }
-
-        // -------------------------------
-        // AddScoreAsync
-        // -------------------------------
 
         [Fact]
         public async Task AddScoreAsync_ShouldThrow_WhenGameDoesNotExist()
@@ -38,7 +37,6 @@ namespace PokerProject.Tests.Services
             await act.Should().ThrowAsync<KeyNotFoundException>();
         }
 
-
         [Fact]
         public async Task AddScoreAsync_ShouldThrow_WhenPlayerNotInGame()
         {
@@ -47,6 +45,7 @@ namespace PokerProject.Tests.Services
 
             var game = new Game { GameNumber = 1, StartedAt = DateTimeOffset.UtcNow };
             context.Games.Add(game);
+            await context.SaveChangesAsync();
 
             var round = new Round
             {
@@ -55,7 +54,6 @@ namespace PokerProject.Tests.Services
                 StartedAt = DateTimeOffset.UtcNow
             };
             context.Rounds.Add(round);
-
             await context.SaveChangesAsync();
 
             Func<Task> act = async () =>
@@ -63,10 +61,6 @@ namespace PokerProject.Tests.Services
 
             await act.Should().ThrowAsync<InvalidOperationException>();
         }
-
-        // -------------------------------
-        // RemoveScoreAsync
-        // -------------------------------
 
         [Fact]
         public async Task RemoveScoreAsync_ShouldSetScoreToZero()
@@ -95,10 +89,8 @@ namespace PokerProject.Tests.Services
             context.Scores.Add(score);
             await context.SaveChangesAsync();
 
-            // Act
             var result = await service.RemoveScoreAsync(score.Id);
 
-            // Assert
             result.Points.Should().Be(0);
 
             var scoreInDb = await context.Scores.FirstAsync();
