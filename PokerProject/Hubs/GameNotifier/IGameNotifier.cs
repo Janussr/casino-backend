@@ -2,6 +2,7 @@
 using PokerProject.DTOs.Games;
 using PokerProject.DTOs.Players;
 using PokerProject.DTOs.Rounds;
+using PokerProject.DTOs.Scores;
 
 namespace PokerProject.Hubs.GameNotifier
 {
@@ -15,5 +16,6 @@ namespace PokerProject.Hubs.GameNotifier
         Task RulesUpdated(int gameId, RulesUpdatedDto payload);
         Task PlayerJoined(int gameId, PlayerJoinedDto payload);
         Task PlayerLeft(int gameId, PlayerLeftDto payload);
+        Task RebuyUpdated(int gameId, RebuyUpdatedDto payload);
     }
 }

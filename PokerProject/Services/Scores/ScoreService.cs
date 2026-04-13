@@ -4,6 +4,7 @@ using PokerProject.DTOs;
 using PokerProject.DTOs.Players;
 using PokerProject.DTOs.Rounds;
 using PokerProject.DTOs.Scores;
+using PokerProject.Hubs.GameNotifier;
 using PokerProject.Models;
 
 namespace PokerProject.Services.Scores
@@ -11,9 +12,11 @@ namespace PokerProject.Services.Scores
     public class ScoreService : IScoreService
     {
         private readonly PokerDbContext _context;
-        public ScoreService(PokerDbContext context)
+        private readonly IGameNotifier _gameNotifier;
+        public ScoreService(PokerDbContext context, IGameNotifier gameNotifier)
         {
             _context = context;
+            _gameNotifier = gameNotifier;
         }
 
         private async Task<Round> GetActiveRound(int gameId)
@@ -264,8 +267,8 @@ namespace PokerProject.Services.Scores
                 throw new InvalidOperationException("No active round");
 
             var player = targetPlayerId.HasValue
-                ? game.Players.FirstOrDefault(p => p.Id == targetPlayerId.Value)     
-                : game.Players.FirstOrDefault(p => p.UserId == actorUserId);        
+                ? game.Players.FirstOrDefault(p => p.Id == targetPlayerId.Value)
+                : game.Players.FirstOrDefault(p => p.UserId == actorUserId);
 
             if (player == null)
                 throw new InvalidOperationException("Player not found in this game");
@@ -284,10 +287,11 @@ namespace PokerProject.Services.Scores
             _context.Scores.Add(score);
             await _context.SaveChangesAsync();
 
-            return new ScoreDto
+            var scoreDto = new ScoreDto
             {
                 Id = score.Id,
                 PlayerId = player.Id,
+                UserId = player.UserId,
                 UserName = player.User?.Username ?? "Unknown",
                 Points = score.Value,
                 GameId = game.Id,
@@ -298,6 +302,16 @@ namespace PokerProject.Services.Scores
                 },
                 Type = score.Type
             };
+
+            await _gameNotifier.RebuyUpdated(game.Id, new RebuyUpdatedDto
+            {
+                GameId = game.Id,
+                PlayerId = player.Id,
+                RebuyCount = player.RebuyCount,
+                Score = scoreDto
+            });
+
+            return scoreDto;
         }
 
 

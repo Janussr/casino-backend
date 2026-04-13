@@ -3,6 +3,7 @@ using PokerProject.DTOs.Bounties;
 using PokerProject.DTOs.Games;
 using PokerProject.DTOs.Players;
 using PokerProject.DTOs.Rounds;
+using PokerProject.DTOs.Scores;
 
 namespace PokerProject.Hubs.GameNotifier
 {
@@ -60,6 +61,10 @@ namespace PokerProject.Hubs.GameNotifier
         public Task PlayerLeft(int gameId, PlayerLeftDto payload)
             => _hubContext.Clients.Group($"Game-{gameId}")
                 .SendAsync("PlayerLeft", payload);
+
+        public Task RebuyUpdated(int gameId, RebuyUpdatedDto payload)
+            => _hubContext.Clients.Group($"Game-{gameId}")
+                .SendAsync("RebuyUpdated", payload);
 
     }
 }
