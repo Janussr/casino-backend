@@ -57,5 +57,9 @@ namespace PokerProject.Hubs.GameNotifier
                 .SendAsync("PlayerJoined", payload);
 
 
+        public Task PlayerLeft(int gameId, PlayerLeftDto payload)
+            => _hubContext.Clients.Group($"Game-{gameId}")
+                .SendAsync("PlayerLeft", payload);
+
     }
 }
