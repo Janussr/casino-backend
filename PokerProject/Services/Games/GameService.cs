@@ -114,21 +114,38 @@ namespace PokerProject.Services.Games
                     existing.IsActive = true;
                     existing.LeftAt = null;
                     await _context.SaveChangesAsync();
+
+                    await _gameNotifier.PlayerJoined(game.Id, new PlayerJoinedDto
+                    {
+                        GameId = game.Id,
+                        Player = new PlayerDto
+                        {
+                            PlayerId = existing.Id,
+                            UserId = existing.UserId,
+                            Username = existing.User?.Username ?? "Unknown",
+                            IsActive = existing.IsActive,
+                            RebuyCount = existing.RebuyCount,
+                            ActiveBounties = existing.ActiveBounties,
+                            TotalPoints = 0
+                        }
+                    });
                 }
+
                 var rejoinTargets = game.Players
-                .Where(p => p.IsActive)
-                .Select(p => new KnockoutTargetDto
-                {
-                    PlayerId = p.Id,
-                    Username = p.User?.Username ?? "Unknown",
-                    ActiveBounties = p.ActiveBounties
-                })
-                .ToList();
+                    .Where(p => p.IsActive)
+                    .Select(p => new KnockoutTargetDto
+                    {
+                        PlayerId = p.Id,
+                        Username = p.User?.Username ?? "Unknown",
+                        ActiveBounties = p.ActiveBounties
+                    })
+                    .ToList();
 
                 await _gameNotifier.KnockoutTargetsUpdated(game.Id, rejoinTargets);
 
                 return new PlayerDto
                 {
+                    PlayerId = existing.Id,
                     UserId = existing.UserId,
                     Username = existing.User?.Username ?? "Unknown",
                     IsActive = existing.IsActive,
@@ -153,6 +170,20 @@ namespace PokerProject.Services.Games
             game.Players.Add(newPlayer);
             await _context.SaveChangesAsync();
 
+            await _gameNotifier.PlayerJoined(game.Id, new PlayerJoinedDto
+            {
+                GameId = game.Id,
+                Player = new PlayerDto
+                {
+                    PlayerId = newPlayer.Id,
+                    UserId = newPlayer.UserId,
+                    Username = user.Username,
+                    IsActive = newPlayer.IsActive,
+                    RebuyCount = newPlayer.RebuyCount,
+                    ActiveBounties = newPlayer.ActiveBounties,
+                    TotalPoints = 0
+                }
+            });
 
             var knockoutTargets = game.Players
                 .Where(p => p.IsActive)
@@ -168,6 +199,7 @@ namespace PokerProject.Services.Games
 
             return new PlayerDto
             {
+                PlayerId = newPlayer.Id,
                 UserId = newPlayer.UserId,
                 Username = user.Username,
                 IsActive = newPlayer.IsActive,

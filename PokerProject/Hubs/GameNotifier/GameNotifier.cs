@@ -52,6 +52,10 @@ namespace PokerProject.Hubs.GameNotifier
              => _hubContext.Clients.Group($"Game-{gameId}")
                 .SendAsync("RulesUpdated", payload);
 
+        public Task PlayerJoined(int gameId, PlayerJoinedDto payload)
+            => _hubContext.Clients.Group($"Game-{gameId}")
+                .SendAsync("PlayerJoined", payload);
+
 
     }
 }
